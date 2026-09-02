@@ -1761,7 +1761,7 @@
 
 <div class="modal-overlay" id="logsModal">
     <div class="modal-card">
-        <div class="modal-header"><h3>Historie přemístění forem</h3><button class="close-modal-btn" onclick="closeLogsModal()">✕</button></div>
+        <div class="modal-header"><h3>Historie</h3><button class="close-modal-btn" onclick="closeLogsModal()">✕</button></div>
         <div class="modal-body" id="logsList"><div class="no-data">Načítání historie...</div></div>
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
             <button class="btn-secondary" id="clearLogsBtnFooter" style="background: rgba(239, 68, 68, 0.2); color: var(--error-badge); display: none;" onclick="promptClearLogs()">Vyčistit historii</button>
@@ -1858,7 +1858,7 @@
 <div class="modal-overlay" id="clearLogsModal">
     <div class="modal-card" style="max-width: 380px;">
         <div class="modal-header"><h3>Vyčistit historii</h3><button class="close-modal-btn" onclick="closeClearLogsModal()">✕</button></div>
-        <div class="modal-body"><p>Opravdu chcete vyčistit starou historii přemístění forem?</p></div>
+        <div class="modal-body"><p>Opravdu chcete vyčistit starou historii?</p></div>
         <div class="modal-footer"><button class="btn-secondary" onclick="closeClearLogsModal()">Zrušit</button><button class="btn-primary" onclick="executeClearLogs()">Potvrdit a vyčistit</button></div>
     </div>
 </div>
@@ -2157,6 +2157,41 @@
     const MASTER_PASSWORD = "adisadis";
     const SUPER_ADMIN_PASSWORD = "adisadmin";
 
+    // Утилиты для работы с Cookies (удержание сессии) с продлением срока жизни (активность)
+    function setCookie(name, value, days = 365) {
+        const d = new Date();
+        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/;SameSite=Lax";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+        }
+        return null;
+    }
+
+    function eraseCookie(name) {
+        document.cookie = name + '=; Max-Age=-0; path=/;';
+    }
+
+    // Функция продления сессии при активных действиях пользователя (защита от сброса на Samsung / мобильных устройствах)
+    function refreshUserSessionActivity() {
+        if (currentUser) {
+            setCookie('adis_user_name', currentUser, 365);
+            localStorage.setItem('adis_user_name', currentUser);
+            if (isSuperUser) {
+                setCookie('adis_is_superuser', 'true', 365);
+                localStorage.setItem('adis_is_superuser', 'true');
+            }
+        }
+    }
+
     const COLORS_CS = [
         'červená', 'cervena', 'modrá', 'modra', 'žlutá', 'zluta', 
         'zelená', 'zelena', 'černá', 'cerna', 'bílá', 'bila', 
@@ -2186,6 +2221,7 @@
     }
 
     function triggerHapticFeedback(pattern = [15]) {
+        refreshUserSessionActivity(); // Продлеваем сессию при любом тапе/вибрации
         if ('vibrate' in navigator) {
             try { navigator.vibrate(pattern); } catch (e) {}
         }
@@ -2227,6 +2263,7 @@
     }
 
     function showModalAnimated(modalId) {
+        refreshUserSessionActivity();
         document.querySelectorAll('.is-touched').forEach(el => el.classList.remove('is-touched'));
         const modal = document.getElementById(modalId);
         if (!modal) return;
@@ -2317,8 +2354,19 @@
     let selectedEditPresetColor = "#ffffff";
     let activeEditColorCustomer = null;
     
-    let currentUser = localStorage.getItem('adis_user_name') || null;
-    let isSuperUser = localStorage.getItem('adis_is_superuser') === 'true';
+    // Инициализация с проверкой Cookies и localStorage
+    let currentUser = getCookie('adis_user_name') || localStorage.getItem('adis_user_name') || null;
+    let isSuperUser = getCookie('adis_is_superuser') === 'true' || localStorage.getItem('adis_is_superuser') === 'true';
+
+    // Синхронизируем обратно на случай восстановления из одного из хранилищ
+    if (currentUser) {
+        setCookie('adis_user_name', currentUser);
+        localStorage.setItem('adis_user_name', currentUser);
+    }
+    if (isSuperUser) {
+        setCookie('adis_is_superuser', 'true');
+        localStorage.setItem('adis_is_superuser', 'true');
+    }
 
     let activeEditMoldId = null;
     let activeEditOldCust = null;
@@ -2341,6 +2389,7 @@
 
     async function pingUserPresence() {
         if (!currentUser) return;
+        refreshUserSessionActivity(); // Продлеваем при пинге активности
 
         const normalizedUser = currentUser.trim();
 
@@ -2752,6 +2801,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        refreshUserSessionActivity(); // Подтверждаем сессию при загрузке
         updateAuthUI();
         renderCustomColorDropdownOptions();
         initSwipeNavigation();
@@ -2765,6 +2815,7 @@
             if (document.visibilityState === 'visible') {
                 pingUserPresence();
                 updateOnlineBadge();
+                refreshUserSessionActivity(); // Продлеваем при возврате во вкладку
             }
         });
 
@@ -2975,6 +3026,8 @@
                 isSuperUser = false;
                 localStorage.removeItem('adis_user_name');
                 localStorage.removeItem('adis_is_superuser');
+                eraseCookie('adis_user_name');
+                eraseCookie('adis_is_superuser');
                 updateAuthUI();
                 refreshUI();
                 showToast("Byli jste odhlášen");
@@ -3010,6 +3063,8 @@
 
         localStorage.setItem('adis_user_name', username);
         localStorage.setItem('adis_is_superuser', isSuperUser ? 'true' : 'false');
+        setCookie('adis_user_name', username, 365);
+        setCookie('adis_is_superuser', isSuperUser ? 'true' : 'false', 365);
         
         closeLoginModal();
         updateAuthUI();
@@ -3017,16 +3072,18 @@
 
         pingUserPresence();
 
-        fetch(`${API_URL}/rest/v1/mold_logs`, {
-            method: 'POST',
-            headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                mold_id: 'SYSTEM', 
-                old_position: 'Autorizace', 
-                new_position: isSuperUser ? 'Přihlášení (Superuser)' : 'Přihlášení uživatele', 
-                user_name: username 
-            })
-        }).catch(e => console.error("Chyba při logování:", e));
+        try {
+            await fetch(`${API_URL}/rest/v1/mold_logs`, {
+                method: 'POST',
+                headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    mold_id: 'SYSTEM', 
+                    old_position: 'Autorizace', 
+                    new_position: isSuperUser ? 'Přihlášení (Superuser)' : 'Přihlášení uživatele', 
+                    user_name: username 
+                })
+            });
+        } catch (e) { console.error("Chyba při logování přihlášení:", e); }
 
         if (isSuperUser) showToast(`Přihlášen jako Superuser: ${currentUser}`);
         else showToast(`Přihlášen: ${currentUser}`);
@@ -3034,12 +3091,14 @@
 
     function checkAuthOrPrompt() {
         if (!currentUser) { openLoginModal(); return false; }
+        refreshUserSessionActivity(); // Продлеваем при проверке авторизации
         return true;
     }
 
     function checkSuperUserOrPrompt() {
         if (!currentUser) { openLoginModal(); return false; }
         if (!isSuperUser) { alert("Tato akce je dostupná pouze pro superuživatele!"); return false; }
+        refreshUserSessionActivity();
         return true;
     }
 
@@ -3520,7 +3579,7 @@
                 await Promise.all([
                     fetch(`${API_URL}/rest/v1/mold_comments?id=eq.${commentId}`, {
                         method: 'DELETE',
-                        headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Prefer': 'return=minimal' }
+                        headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Prefer': 'return=minimal' },
                     }),
                     fetch(`${API_URL}/rest/v1/mold_logs`, {
                         method: 'POST',
@@ -4013,13 +4072,16 @@
                 })
             });
 
-            if (pendingNavodkyFiles.length > 0 || hasReplaceNavodky) {
-                await fetch(`${API_URL}/rest/v1/mold_logs`, {
-                    method: 'POST',
-                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mold_id: moldId, old_position: 'Návodka', new_position: 'Aktualizace návodky', user_name: currentUser })
-                });
-            }
+            await fetch(`${API_URL}/rest/v1/mold_logs`, {
+                method: 'POST',
+                headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    mold_id: moldId, 
+                    old_position: 'Detail formy', 
+                    new_position: 'Aktualizace návodky / foto', 
+                    user_name: currentUser 
+                })
+            });
         } catch (e) { console.error(e); }
         finally { isSubmittingAction = false; }
     }
@@ -4576,10 +4638,12 @@
 
     function isRegularUserLog(log) {
         const combined = ((log.old_position || '') + ' ' + (log.new_position || '')).toLowerCase();
-        if (combined.includes('autorizace') || combined.includes('přihlášení') || combined.includes('přihlášen') || combined.includes('zákazník') || log.mold_id === 'SYSTEM') {
+        // Обычным пользователям скрываем только факты входа в систему и системные события
+        if (combined.includes('autorizace') || combined.includes('přihlášení') || combined.includes('přihlášen') || log.mold_id === 'SYSTEM') {
             return false;
         }
-        return combined.includes('pozice') || combined.includes('stav') || combined.includes('nová forma') || combined.includes('koš') || combined.includes('obnovena') || combined.includes('návodka');
+        // Всё остальное операторам доступно
+        return true;
     }
 
     async function openLogsModal() {
@@ -4593,7 +4657,10 @@
             const res = await fetch(`${API_URL}/rest/v1/mold_logs?select=*&order=created_at.desc&limit=150`, { headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` } });
             let logs = await res.json();
 
-            if (!isSuperUser) logs = logs.filter(isRegularUserLog);
+            // Суперпользователь видит абсолютно всё, обычный пользователь видит всю операционную историю без входов
+            if (!isSuperUser) {
+                logs = logs.filter(isRegularUserLog);
+            }
 
             if (logs.length === 0) { list.innerHTML = `<div class="no-data">Zatím žádná historie</div>`; return; }
             list.innerHTML = logs.map(log => `
@@ -4609,7 +4676,7 @@
     function promptClearLogs() { 
         if (!isSuperUser) { alert("Nemáte oprávnění pro vyčištění historie!"); return; }
         if (checkAuthOrPrompt()) {
-            showCustomConfirm("Vyčistir historii", "Opravdu chcete vyčistit starou historii přemístění forem?", "Vyčistit", executeClearLogs);
+            showCustomConfirm("Vyčistir historii", "Opravdu chcete vyčistit starou historii?", "Vyčistit", executeClearLogs);
         }
     }
     function closeClearLogsModal() { hideModalAnimated('clearLogsModal'); }
