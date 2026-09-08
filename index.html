@@ -728,20 +728,20 @@
             }
             .customer-filters::-webkit-scrollbar { display: none; }
             
-            /* Сверхкомпактные теги позиций и клиентов для мобильных устройств без скролла */
+            /* Увеличенные теги позиций и клиентов для мобильных устройств (чтобы было крупнее и без скролла внутри тега) */
             .badge-position {
-                font-size: 0.62rem !important;
-                padding: 0.12rem 0.28rem !important;
+                font-size: 0.72rem !important;
+                padding: 0.18rem 0.4rem !important;
                 white-space: nowrap !important;
-                letter-spacing: -0.03em !important;
+                letter-spacing: normal !important;
                 max-width: none !important;
                 display: inline-block !important;
                 text-align: center !important;
             }
 
             .tag-customer {
-                font-size: 0.65rem !important;
-                padding: 0.12rem 0.3rem !important;
+                font-size: 0.72rem !important;
+                padding: 0.18rem 0.45rem !important;
                 white-space: nowrap !important;
             }
 
@@ -1077,11 +1077,12 @@
 
         .action-buttons-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
+        /* Увеличенные теги позиций для комфортного чтения без скролла */
         .badge-position {
             font-family: monospace;
-            padding: 0.2rem 0.4rem;
+            padding: 0.3rem 0.55rem;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             white-space: nowrap;
             cursor: pointer;
             display: inline-block;
@@ -1174,10 +1175,11 @@
             overflow: hidden;
         }
 
+        /* Увеличенные теги заказчиков для лучшей читаемости */
         .tag-customer {
             display: inline-block;
-            font-size: 0.72rem;
-            padding: 0.2rem 0.4rem;
+            font-size: 0.78rem;
+            padding: 0.3rem 0.55rem;
             border-radius: 6px;
             text-transform: capitalize;
             cursor: pointer;
