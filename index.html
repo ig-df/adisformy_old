@@ -469,9 +469,9 @@
         }
 
         .filter-chip {
-            padding: 0.35rem 0.75rem;
+            padding: 0.3rem 0.6rem;
             border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid var(--border-color);
@@ -516,13 +516,13 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 8px;
             border: 1px dashed var(--border-color);
             background: var(--card-bg);
             color: var(--text-muted);
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -727,6 +727,24 @@
                 scrollbar-width: none;
             }
             .customer-filters::-webkit-scrollbar { display: none; }
+            
+            /* Сверхкомпактные теги позиций и клиентов для мобильных устройств без скролла */
+            .badge-position {
+                font-size: 0.62rem !important;
+                padding: 0.12rem 0.28rem !important;
+                white-space: nowrap !important;
+                letter-spacing: -0.03em !important;
+                max-width: none !important;
+                display: inline-block !important;
+                text-align: center !important;
+            }
+
+            .tag-customer {
+                font-size: 0.65rem !important;
+                padding: 0.12rem 0.3rem !important;
+                white-space: nowrap !important;
+            }
+
             #searchTable td, #databaseTableContainer td, #dashboardTableContainer td { padding: 0.65rem 0.25rem !important; }
             th:nth-child(1), td:nth-child(1) { width: 38% !important; text-align: left !important; }
             th:nth-child(2), td:nth-child(2) { width: 30% !important; text-align: center !important; }
@@ -1061,9 +1079,9 @@
 
         .badge-position {
             font-family: monospace;
-            padding: 0.25rem 0.5rem;
+            padding: 0.2rem 0.4rem;
             border-radius: 6px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             white-space: nowrap;
             cursor: pointer;
             display: inline-block;
@@ -1158,8 +1176,8 @@
 
         .tag-customer {
             display: inline-block;
-            font-size: 0.78rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.72rem;
+            padding: 0.2rem 0.4rem;
             border-radius: 6px;
             text-transform: capitalize;
             cursor: pointer;
@@ -2715,7 +2733,7 @@
     const POSSIBLE_POSITIONS = (() => {
         const positions = ["Mezisklad", "Mezisklad Ctiboř", "Mezisklad Externí"];
         const shelves = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-        const colors = ['z', 'c', 'm', 'b', 'h'];
+        const colors = ['z', 'c', 'č', 'm', 'b', 'h'];
         for (let num = 1; num <= 99; num++) {
             for (let i = 0; i < shelves.length; i++) {
                 const shelf = shelves[i];
@@ -2735,7 +2753,7 @@
         if (!str) return str;
         let trimmed = str.trim();
         if (trimmed.toLowerCase().includes('mezisklad')) return trimmed;
-        return trimmed.replace(/\s+([zcmbzCMBHh])(?!\.)$/i, ' $1.');
+        return trimmed.replace(/\s+([zcmbzCMBHhčČ])(?!\.)$/i, ' $1.');
     }
 
     function initSwipeNavigation() {
@@ -3662,12 +3680,15 @@
         if (p.includes("externí") || p.includes("externi")) return 'badge-position pos-externi';
         if (p.includes("mezisklad")) return 'badge-position pos-mezisklad';
         if (p.includes(' z')) return 'badge-position pos-z';
-        if (p.includes(' c')) return 'badge-position pos-c';
+        if (p.includes(' c') || p.includes(' č')) return 'badge-position pos-c';
         if (p.includes(' m')) return 'badge-position pos-m';
         if (p.includes(' b')) return 'badge-position pos-b';
         if (p.includes(' h')) return 'badge-position pos-h';
         const lastChar = p.replace('.', '').slice(-1);
-        if (['z', 'c', 'm', 'b', 'h'].includes(lastChar)) return `badge-position pos-${lastChar}`;
+        if (['z', 'c', 'č', 'm', 'b', 'h'].includes(lastChar)) {
+            if (lastChar === 'č') return 'badge-position pos-c';
+            return `badge-position pos-${lastChar}`;
+        }
         return 'badge-position pos-mezisklad';
     }
 
