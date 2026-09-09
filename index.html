@@ -12,7 +12,10 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adis Formy - Databáze a Vyhledávání</title>
+    <title>Adis Formy</title>
+    <meta name="description" content="Systém pro evidenci a správu forem skladu závodu s vyhledáváním, sledováním údržby a exportem do Heliosu.">
+    <meta property="og:title" content="Adis Formy">
+    <meta property="og:description" content="Systém pro evidenci a správu forem skladu závodu s vyhledáváním, sledováním údržby a exportem do Heliosu.">
     
     <!-- Favicon & Mobile App Integration -->
     <link rel="manifest" href="manifest.json">
@@ -455,23 +458,30 @@
 
         .customer-filters-wrapper {
             position: relative;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             padding-right: 0;
         }
 
         .customer-filters {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
+            flex-wrap: nowrap;
+            gap: 0.35rem;
             align-items: center;
             position: relative;
             flex-direction: row;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+        .customer-filters::-webkit-scrollbar {
+            display: none;
         }
 
         .filter-chip {
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.74rem;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid var(--border-color);
@@ -728,7 +738,6 @@
             }
             .customer-filters::-webkit-scrollbar { display: none; }
             
-            /* Увеличенные теги позиций и клиентов для мобильных устройств (чтобы было крупнее и без скролла внутри тега) */
             .badge-position {
                 font-size: 0.72rem !important;
                 padding: 0.18rem 0.4rem !important;
@@ -840,23 +849,30 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
             border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-main);
-            font-size: 14px;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 600;
             cursor: pointer;
             flex-shrink: 0;
-            margin-right: 0.35rem;
-            transition: transform 0.25s ease, background-color 0.2s ease;
+            margin-right: 0.4rem;
+            transition: transform 0.2s ease, color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .toggle-accordion-btn:hover {
+            background: var(--row-hover);
+            color: var(--text-main);
+            border-color: var(--border-color);
         }
 
         .toggle-accordion-btn.expanded {
-            background-color: var(--primary);
-            color: var(--card-bg);
-            border-color: var(--primary);
+            background-color: var(--row-hover);
+            color: var(--primary);
+            border-color: var(--border-color);
             transform: rotate(180deg);
         }
 
@@ -1077,7 +1093,6 @@
 
         .action-buttons-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
-        /* Увеличенные теги позиций для комфортного чтения без скролла */
         .badge-position {
             font-family: monospace;
             padding: 0.3rem 0.55rem;
@@ -1175,7 +1190,6 @@
             overflow: hidden;
         }
 
-        /* Увеличенные теги заказчиков для лучшей читаемости */
         .tag-customer {
             display: inline-block;
             font-size: 0.78rem;
@@ -1201,15 +1215,15 @@
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-top: none;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            max-height: 180px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+            z-index: 99999;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             text-align: left;
         }
-        .autocomplete-item { padding: 0.65rem 1rem; cursor: pointer; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
+        .autocomplete-item { padding: 0.75rem 1rem; cursor: pointer; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
 
         .custom-color-dropdown-wrapper { position: relative; width: 100%; }
         .custom-color-btn {
@@ -1244,8 +1258,8 @@
             backdrop-filter: blur(4px); 
             z-index: 1000;
             justify-content: center; 
-            align-items: center; 
-            padding: 1rem; 
+            align-items: center; /* Центрирование модалок на всех экранах (включая мобильные) */
+            padding: 0.5rem; 
             overflow-y: auto;
             opacity: 0;
             transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1259,16 +1273,16 @@
             background: var(--card-bg); 
             color: var(--text-main); 
             width: 100%; 
-            max-width: 520px; 
-            max-height: 85vh;
-            border-radius: 14px; 
+            max-width: 580px; 
+            max-height: 92vh;
+            border-radius: 16px; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
             display: flex; 
             flex-direction: column; 
             border: 1px solid var(--border-color); 
-            margin: auto;
-            overflow: hidden;
-            transform: scale(0.92) translateY(10px);
+            margin: auto; /* Универсальное центрирование */
+            overflow: visible;
+            transform: scale(0.92) translateY(20px);
             opacity: 0;
             transition: transform 0.25s cubic-bezier(0.34, 1.1, 0.64, 1), opacity 0.2s ease-out;
             will-change: transform, opacity;
@@ -1282,18 +1296,20 @@
         .modal-header {
             padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center; background: var(--row-hover);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
         .close-modal-btn { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 6px; transition: background 0.2s ease; }
         .close-modal-btn:hover { background-color: var(--border-color); color: var(--text-main); }
         
         .modal-body { 
-            padding: 1.25rem; 
-            overflow-y: auto; 
-            max-height: 65vh;
+            padding: 1rem 1.25rem; 
+            overflow-y: visible; 
+            max-height: 55vh;
             flex: 1; 
             display: flex; 
             flex-direction: column; 
-            gap: 1rem; 
+            gap: 0.85rem; 
             -webkit-overflow-scrolling: touch;
         }
 
@@ -1319,6 +1335,8 @@
         .modal-footer {
             padding: 1.25rem 1.25rem; border-top: 1px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center; background: var(--row-hover);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
         }
         .btn-primary { background: var(--text-main); color: var(--card-bg); border: none; padding: 0.7rem 1.35rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: opacity 0.2s ease, transform 0.15s ease; }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
@@ -1675,8 +1693,23 @@
         </div>
 
         <div id="tab-database" class="tab-content">
-            <div class="customer-filters-wrapper">
-                <div class="customer-filters" id="customerFilters"></div>
+            <div style="margin-bottom: 0.75rem;">
+                <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.3rem;">Zákazníci</div>
+                <div class="customer-filters-wrapper" style="margin-bottom: 0;">
+                    <div class="customer-filters" id="customerFilters"></div>
+                </div>
+            </div>
+
+            <div style="height: 1px; background-color: var(--border-color); margin: 0.55rem 0; opacity: 0.6;"></div>
+
+            <div style="margin-bottom: 0.85rem;">
+                <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.3rem;">Umístění</div>
+                <div class="customer-filters" id="positionFilters">
+                    <span class="filter-chip active" tabindex="0" onclick="filterPosition('ALL', this)" style="background-color: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: normal;">Všechny pozice</span>
+                    <span class="filter-divider" style="height: 14px;"></span>
+                    <span class="filter-chip" tabindex="0" onclick="filterPosition('Mezisklad', this)" style="background-color: #4b5563; color: #ffffff; border-color: #4b5563;">Mezisklad</span>
+                    <span class="filter-chip" tabindex="0" onclick="filterPosition('Mezisklad Externí', this)" style="background-color: #7c2d12; color: #ffffff; border-color: #7c2d12;">Mezisklad Externí</span>
+                </div>
             </div>
             <div class="stats-bar"><span id="dbStats">Načítání databáze...</span></div>
             <div class="table-container" id="databaseTableContainer">
@@ -2177,7 +2210,6 @@
     const MASTER_PASSWORD = "adisadis";
     const SUPER_ADMIN_PASSWORD = "adisadmin";
 
-    // Утилиты для работы с Cookies (удержание сессии) с продлением срока жизни (активность)
     function setCookie(name, value, days = 365) {
         const d = new Date();
         d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -2200,7 +2232,6 @@
         document.cookie = name + '=; Max-Age=-0; path=/;';
     }
 
-    // Функция продления сессии при активных действиях пользователя (защита от сброса на Samsung / мобильных устройствах)
     function refreshUserSessionActivity() {
         if (currentUser) {
             setCookie('adis_user_name', currentUser, 365);
@@ -2229,6 +2260,15 @@
             .replace(/'/g, "&#039;");
     }
 
+    function formatPositionDisplay(pos) {
+        if (!pos) return '';
+        let p = String(pos).trim();
+        if (p.toLowerCase() === 'mezisklad externí' || p.toLowerCase() === 'mezisklad externi') {
+            return 'Mezisklad Ext.';
+        }
+        return p;
+    }
+
     function getTitleFromFilename(filename, fallbackIndex) {
         if (!filename) return `Návodka ${fallbackIndex}`;
         const nameWithoutExt = (filename.substring(0, filename.lastIndexOf('.')) || filename).toLowerCase();
@@ -2241,7 +2281,7 @@
     }
 
     function triggerHapticFeedback(pattern = [15]) {
-        refreshUserSessionActivity(); // Продлеваем сессию при любом тапе/вибрации
+        refreshUserSessionActivity();
         if ('vibrate' in navigator) {
             try { navigator.vibrate(pattern); } catch (e) {}
         }
@@ -2369,16 +2409,16 @@
     let replaceNavodkaMap = {};
     let directProdPendingFiles = [];
     let currentCustomerFilter = 'ALL';
+    let currentPositionFilter = 'ALL';
     let currentDashboardStatusFilter = 'ALL';
     let selectedPresetColor = "#ffffff";
     let selectedEditPresetColor = "#ffffff";
     let activeEditColorCustomer = null;
+    let activeCustomerChangeMoldId = null;
     
-    // Инициализация с проверкой Cookies и localStorage
     let currentUser = getCookie('adis_user_name') || localStorage.getItem('adis_user_name') || null;
     let isSuperUser = getCookie('adis_is_superuser') === 'true' || localStorage.getItem('adis_is_superuser') === 'true';
 
-    // Синхронизируем обратно на случай восстановления из одного из хранилищ
     if (currentUser) {
         setCookie('adis_user_name', currentUser);
         localStorage.setItem('adis_user_name', currentUser);
@@ -2409,7 +2449,7 @@
 
     async function pingUserPresence() {
         if (!currentUser) return;
-        refreshUserSessionActivity(); // Продлеваем при пинге активности
+        refreshUserSessionActivity();
 
         const normalizedUser = currentUser.trim();
 
@@ -2735,7 +2775,7 @@
     const POSSIBLE_POSITIONS = (() => {
         const positions = ["Mezisklad", "Mezisklad Ctiboř", "Mezisklad Externí"];
         const shelves = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-        const colors = ['z', 'c', 'č', 'm', 'b', 'h'];
+        const colors = ['z', 'c', 'm', 'b', 'h'];
         for (let num = 1; num <= 99; num++) {
             for (let i = 0; i < shelves.length; i++) {
                 const shelf = shelves[i];
@@ -2821,7 +2861,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        refreshUserSessionActivity(); // Подтверждаем сессию при загрузке
+        refreshUserSessionActivity();
         updateAuthUI();
         renderCustomColorDropdownOptions();
         initSwipeNavigation();
@@ -2835,7 +2875,7 @@
             if (document.visibilityState === 'visible') {
                 pingUserPresence();
                 updateOnlineBadge();
-                refreshUserSessionActivity(); // Продлеваем при возврате во вкладку
+                refreshUserSessionActivity();
             }
         });
 
@@ -3012,6 +3052,58 @@
         }
     }
 
+    function openCustomerModal(moldId, currentCustomer) {
+        if (!checkAuthOrPrompt()) return;
+        activeCustomerChangeMoldId = moldId;
+        const label = document.getElementById('customerModalLabel');
+        if (label) label.textContent = `Forma č. ${moldId} (stávající: ${currentCustomer}):`;
+        const select = document.getElementById('modalCustomerSelect');
+        if (select) {
+            select.innerHTML = customersList.map(c => `<option value="${escapeHtml(c.name)}" ${c.name === currentCustomer ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+        }
+        showModalAnimated('customerModal');
+    }
+
+    function closeCustomerModal() {
+        hideModalAnimated('customerModal');
+        activeCustomerChangeMoldId = null;
+    }
+
+    async function saveCustomerChange() {
+        triggerHapticFeedback([18]);
+        if (isSubmittingAction) return;
+        const newCustomer = document.getElementById('modalCustomerSelect').value;
+        if (!activeCustomerChangeMoldId) return;
+
+        isSubmittingAction = true;
+        closeCustomerModal();
+
+        const itemIdx = rawDatabase.findIndex(i => String(i[0]) === String(activeCustomerChangeMoldId));
+        let oldCust = 'Neznámý';
+        if (itemIdx !== -1) {
+            oldCust = rawDatabase[itemIdx][2];
+            rawDatabase[itemIdx][2] = newCustomer;
+            refreshUI();
+        }
+        showToast(`Zákazník změněn na ${newCustomer}`);
+
+        try {
+            await Promise.all([
+                fetch(`${API_URL}/rest/v1/molds?id=eq.${activeCustomerChangeMoldId}`, {
+                    method: 'PATCH',
+                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ customer: newCustomer })
+                }),
+                fetch(`${API_URL}/rest/v1/mold_logs`, {
+                    method: 'POST',
+                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mold_id: activeCustomerChangeMoldId, old_position: `Zákazník: ${oldCust}`, new_position: `Zákazník: ${newCustomer}`, user_name: currentUser })
+                })
+            ]);
+        } catch (e) { console.error(e); }
+        finally { setTimeout(() => { isSubmittingAction = false; }, 800); }
+    }
+
     function updateAuthUI() {
         const authBtn = document.getElementById('authCornerBtn');
         const superuserBtn = document.getElementById('superuserBadgeBtn');
@@ -3111,7 +3203,7 @@
 
     function checkAuthOrPrompt() {
         if (!currentUser) { openLoginModal(); return false; }
-        refreshUserSessionActivity(); // Продлеваем при проверке авторизации
+        refreshUserSessionActivity();
         return true;
     }
 
@@ -3628,6 +3720,8 @@
         }
     }
 
+
+
     function openAddCustomerModal() {
         if (!checkAuthOrPrompt()) return;
         const filtersContainer = document.querySelector('.customer-filters');
@@ -3702,6 +3796,10 @@
         if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
         dropdown.innerHTML = filtered.slice(0, 50).map(item => `<div class="autocomplete-item" tabindex="0" onclick="selectPosition('${inputElement.id}', '${item}')">${item}</div>`).join('');
         dropdown.style.display = 'block';
+
+        setTimeout(() => {
+            dropdown.scrollTop = 0;
+        }, 50);
     }
 
     function selectPosition(inputId, value) {
@@ -4041,7 +4139,6 @@
         } catch(e) { currentNavodky = navodkaUrl ? [{url: navodkaUrl, title: "Návodka 1"}] : []; }
 
         const pendingNavodkyFiles = temporaryNavodkaMap[moldId] || [];
-        const hasReplaceNavodky = Object.keys(replaceNavodkaMap[moldId] || {}).length > 0;
 
         if (replaceNavodkaMap[moldId]) {
             for (let idxStr in replaceNavodkaMap[moldId]) {
@@ -4228,8 +4325,15 @@
         }
 
         document.getElementById('positionModalLabel').textContent = `Forma č. ${moldId} (stávající: ${currentPos}):`;
-        document.getElementById('modalPositionInput').value = fallbackPos;
+        const inputEl = document.getElementById('modalPositionInput');
+        inputEl.value = fallbackPos;
+        
         showModalAnimated('positionModal');
+
+        setTimeout(() => {
+            inputEl.focus();
+            inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 250);
     }
 
     function closePositionModal() { hideModalAnimated('positionModal'); }
@@ -4661,11 +4765,9 @@
 
     function isRegularUserLog(log) {
         const combined = ((log.old_position || '') + ' ' + (log.new_position || '')).toLowerCase();
-        // Обычным пользователям скрываем только факты входа в систему и системные события
         if (combined.includes('autorizace') || combined.includes('přihlášení') || combined.includes('přihlášen') || log.mold_id === 'SYSTEM') {
             return false;
         }
-        // Всё остальное операторам доступно
         return true;
     }
 
@@ -4680,7 +4782,6 @@
             const res = await fetch(`${API_URL}/rest/v1/mold_logs?select=*&order=created_at.desc&limit=150`, { headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` } });
             let logs = await res.json();
 
-            // Суперпользователь видит абсолютно всё, обычный пользователь видит всю операционную историю без входов
             if (!isSuperUser) {
                 logs = logs.filter(isRegularUserLog);
             }
@@ -4744,11 +4845,12 @@
 
     function renderPositionCellHtml(num, pos, status, productName, prevPos = '') {
         const badgeClass = getPositionBadgeClass(pos);
+        const displayPos = formatPositionDisplay(pos);
         const sub = pos.toLowerCase().includes('mezisklad') && prevPos ? `<span class="prev-position-sub">(Původně: ${escapeHtml(prevPos)})</span>` : '';
         return `
             <div class="position-cell">
                 <div class="position-wrapper">
-                    <span class="${badgeClass}" tabindex="0" onclick="editPosition('${escapeHtml(num)}', '${escapeHtml(pos)}')">${escapeHtml(pos)}</span>
+                    <span class="${badgeClass}" tabindex="0" onclick="editPosition('${escapeHtml(num)}', '${escapeHtml(pos)}')">${escapeHtml(displayPos)}</span>
                     ${sub}
                 </div>
                 <div class="action-buttons-group">
@@ -4832,174 +4934,148 @@
                 } catch(e) { currentNavodky = [{url: navodkaUrl, title: "Návodka 1"}]; }
             }
 
-            let existingNavodkyEditHtml = currentNavodky.map((itemObj, idx) => {
+            const navodkyEditHtml = currentNavodky.map((itemObj, idx) => {
                 const title = typeof itemObj === 'string' ? `Návodka ${idx + 1}` : (itemObj.title || `Návodka ${idx + 1}`);
-                const url = typeof itemObj === 'string' ? itemObj : itemObj.url;
-                const replacedFile = (replaceNavodkaMap[num] && replaceNavodkaMap[num][idx]) ? replaceNavodkaMap[num][idx] : null;
+                const hasReplacement = replaceNavodkaMap[num] && replaceNavodkaMap[num][idx];
+                const replaceFileName = hasReplacement ? replaceNavodkaMap[num][idx].name : '';
 
-                if (replacedFile) {
-                    const newTitle = getTitleFromFilename(replacedFile.name, idx + 1);
-                    return `
-                        <div class="navodka-badge-item" style="border-color: #f59e0b; background-color: #fffbeb;">
-                            <svg class="navodka-file-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                            <span style="color: #b45309;"><strong>Bude nahrazeno:</strong> ${escapeHtml(newTitle)}</span>
-                            <button type="button" class="navodka-delete-cross" onclick="cancelNavodkaReplace('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')" title="Zrušit náhradu">✕</button>
+                return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.35rem 0.5rem; background: var(--row-hover); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.78rem;">
+                        <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${escapeHtml(title)}</span>
+                        <div style="display: flex; gap: 0.3rem; align-items: center;">
+                            ${hasReplacement ? `<span style="font-size: 0.7rem; color: #16a34a; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(replaceFileName)}</span><button type="button" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="cancelNavodkaReplace('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Zrušit</button>` : `<input type="file" id="rep-nav-${escapeHtml(uniqueKey)}-${idx}" accept=".pdf,.doc,.docx,image/*" class="file-upload-hidden" onchange="handleNavodkaReplaceSelect('${escapeHtml(num)}', ${idx}, this, '${escapeHtml(uniqueKey)}')"><label for="rep-nav-${escapeHtml(uniqueKey)}-${idx}" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem; cursor: pointer;">Nahradit</label>`}
+                            <button type="button" class="btn-danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="removeSpecificNavodka('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Smazat</button>
                         </div>
-                    `;
-                }
-
-                return `
-                    <div class="navodka-badge-item" style="border-color: #3b82f6;">
-                        <svg class="navodka-file-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        <span onclick="openPdfModal('${escapeHtml(url)}', '${escapeHtml(num)} — ${escapeHtml(title)}')">${escapeHtml(title)}</span>
-
-                        <input type="file" id="navodka-replace-input-${escapeHtml(uniqueKey)}-${idx}" accept="image/*,.pdf" class="file-upload-hidden" onchange="handleNavodkaReplaceSelect('${escapeHtml(num)}', ${idx}, this, '${escapeHtml(uniqueKey)}')">
-                        <label for="navodka-replace-input-${escapeHtml(uniqueKey)}-${idx}" style="cursor:pointer; margin-left:6px; font-size:12px; filter: grayscale(100%); opacity:0.75; transition:opacity 0.2s;" title="Nahradit soubor">🔄</label>
-
-                        ${isSuperUser ? `<button type="button" class="navodka-delete-cross" onclick="removeSpecificNavodka('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')" title="Smazat návodku">✕</button>` : ''}
                     </div>
                 `;
             }).join('');
 
-            const pendingNavodky = temporaryNavodkaMap[num] || [];
-            let tempNavodkyEditHtml = pendingNavodky.map((file, idx) => {
-                const autoTitle = getTitleFromFilename(file.name, currentNavodky.length + idx + 1);
-                return `
-                    <div class="navodka-badge-item" style="border-color: #22c55e;">
-                        <svg class="navodka-file-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                        <span style="color: #15803d;">+ ${escapeHtml(autoTitle)}</span>
-                        <button type="button" class="navodka-delete-cross" onclick="removeTempNavodka('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')" title="Zrušit">✕</button>
-                    </div>
-                `;
-            }).join('');
+            const tempNavs = temporaryNavodkaMap[num] || [];
+            const tempNavsHtml = tempNavs.map((file, idx) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.35rem 0.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 0.78rem;">
+                    <span style="font-weight: 600; color: #166534; max-width: 160px; overflow: hidden; text-overflow: ellipsis;">+ ${escapeHtml(file.name)}</span>
+                    <button type="button" class="btn-danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="removeTempNavodka('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Zrušit</button>
+                </div>
+            `).join('');
 
             return `
                 <div class="accordion-top-bar">
-                    <div class="accordion-header-title">Úprava detailu formy</div>
+                    <div class="accordion-header-title">Úprava formy</div>
                     <button class="accordion-edit-trigger-btn" onclick="toggleAccordionEditMode('${escapeHtml(num)}', '${escapeHtml(uniqueKey)}')">Zrušit</button>
                 </div>
-                
-                <div class="form-group" style="margin-bottom: 0.5rem;">
-                    <label style="font-size:0.78rem; color:var(--text-muted)">Název výroby / dílu:</label>
-                    <input type="text" id="acc-name-${escapeHtml(uniqueKey)}" value="${escapeHtml(productName)}" placeholder="Zadejte název..." style="padding: 0.5rem; font-size: 0.85rem;" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">
+                <div class="form-group">
+                    <label>Název výroby / dílu:</label>
+                    <input type="text" id="acc-name-${escapeHtml(uniqueKey)}" value="${escapeHtml(productName)}" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">
                 </div>
-
                 <div>
-                    <div class="accordion-header-title" style="color: #3b82f6; margin-bottom: 0.35rem;">Návodka k výrobě:</div>
-                    <div class="navodka-container-horizontal" style="margin-bottom: 0.4rem;">
-                        ${existingNavodkyEditHtml}
-                        ${tempNavodkyEditHtml}
+                    <div class="accordion-header-title" style="color: #3b82f6; margin-bottom: 0.3rem;">Návodky k výrobě:</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.4rem;">
+                        ${navodkyEditHtml}
+                        ${tempNavsHtml}
                     </div>
-                    <input type="file" id="navodka-file-${escapeHtml(uniqueKey)}" accept="image/*,.pdf" multiple class="file-upload-hidden" onchange="handleNavodkaFileSelect('${escapeHtml(num)}', this, '${escapeHtml(uniqueKey)}')">
-                    <label for="navodka-file-${escapeHtml(uniqueKey)}" class="btn-secondary" style="display:inline-flex; align-items:center; gap:0.35rem; padding: 0.35rem 0.65rem; font-size:0.75rem; cursor:pointer;">
-                        📎 Připojit další návodku
-                    </label>
+                    <input type="file" id="acc-nav-file-${escapeHtml(uniqueKey)}" accept=".pdf,.doc,.docx,image/*" multiple class="file-upload-hidden" onchange="handleNavodkaFileSelect('${escapeHtml(num)}', this, '${escapeHtml(uniqueKey)}')">
+                    <label for="acc-nav-file-${escapeHtml(uniqueKey)}" class="btn-secondary" style="display: inline-block; padding: 0.35rem 0.75rem; font-size: 0.78rem; cursor: pointer; text-align: center;">+ Přidat návodku</label>
                 </div>
-
                 <div>
-                    <div class="accordion-header-title" style="margin-bottom: 0.35rem;">Fotografie formy (${photosArr.length + pending.length}/5):</div>
-                    <div class="accordion-photo-box">
-                        ${existingThumbs}
-                        ${pendingThumbs}
-                        ${uploadCard}
-                    </div>
+                    <div class="accordion-header-title" style="margin-bottom: 0.3rem;">Fotografie (${photosArr.length + pending.length}/5):</div>
+                    <div class="accordion-photo-box">${existingThumbs}${pendingThumbs}${uploadCard}</div>
                 </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.5rem;">
-                    <button class="btn-primary" style="padding:0.4rem 0.85rem; font-size:0.82rem;" onclick="saveAccordionDetails('${escapeHtml(num)}', '${escapeHtml(uniqueKey)}')">Uložit změny</button>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.82rem;" onclick="saveAccordionDetails('${escapeHtml(num)}', '${escapeHtml(uniqueKey)}')">Uložit změny</button>
                 </div>
             `;
         }
     }
 
-    function renderCommentsListHtml(moldId) {
-        const itemComments = allComments.filter(c => String(c.mold_id) === String(moldId));
-        if (itemComments.length === 0) return '';
+    function renderCommentsHtml(moldId) {
+        const moldComms = allComments.filter(c => String(c.mold_id) === String(moldId));
+        if (moldComms.length === 0) return '';
 
         return `
             <div class="comments-section">
-                ${itemComments.map(c => {
-                    const author = escapeHtml(c.user_name || 'Neznámý');
-                    const text = escapeHtml(c.comment || '');
-                    const cDate = new Date(c.created_at).toLocaleString('cs-CZ');
-
-                    let photosArr = [];
-                    if (c.photo_urls) {
-                        if (Array.isArray(c.photo_urls)) photosArr = c.photo_urls;
-                        else if (typeof c.photo_urls === 'string') {
-                            try {
-                                const parsed = JSON.parse(c.photo_urls);
-                                photosArr = Array.isArray(parsed) ? parsed : [c.photo_urls];
-                            } catch (e) { photosArr = c.photo_urls.trim() ? [c.photo_urls] : []; }
-                        }
-                    }
-
-                    const photoTag = photosArr.length > 0 ? `<span style="color: #3b82f6; font-weight: bold; margin-left: auto; display: flex; align-items: center; gap: 2px;">📷 ${photosArr.length}</span>` : '';
-
-                    return `
-                        <div class="comment-item" onclick="openViewCommentModal('${escapeHtml(c.id)}')" oncontextmenu="handleCommentRightClick(event, '${escapeHtml(c.id)}')">
-                            <div class="comment-header-row">
-                                <span class="comment-meta">💬 <strong>${author}</strong> • ${cDate}</span>
-                                ${photoTag}
-                                <span class="comment-expand-hint" title="Zobrazit detail">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                </span>
+                ${moldComms.map(c => `
+                    <div class="comment-item" onclick="openViewCommentModal('${c.id}')" oncontextmenu="handleCommentRightClick(event, '${c.id}')">
+                        <div class="comment-header-row">
+                            <div class="comment-meta">
+                                <span>👤 ${escapeHtml(c.user_name || 'Neznámý')}</span>
+                                <span>•</span>
+                                <span>${new Date(c.created_at).toLocaleString('cs-CZ')}</span>
                             </div>
-                            <div class="comment-text-faded">${text}</div>
+                            <span class="comment-expand-hint" title="Zobrazit detail">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </span>
                         </div>
-                    `;
-                }).join('')}
+                        <div class="comment-text-faded">${escapeHtml(c.comment)}</div>
+                    </div>
+                `).join('')}
             </div>
         `;
     }
 
+    function filterPosition(pos, element) {
+        triggerHapticFeedback([12]);
+        currentPositionFilter = pos;
+        
+        const container = document.getElementById('positionFilters');
+        if (container) {
+            container.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+        }
+        if (element) element.classList.add('active');
+
+        renderFullDatabase();
+    }
+
     function renderFullDatabase() {
         const tbody = document.getElementById('databaseTable');
+        const stats = document.getElementById('dbStats');
         if (!tbody) return;
 
-        let activeMolds = rawDatabase.filter(item => item[4] !== true);
-
+        let filtered = rawDatabase.filter(item => !item[4]);
         if (currentCustomerFilter !== 'ALL') {
-            activeMolds = activeMolds.filter(item => String(item[2]).toLowerCase() === currentCustomerFilter.toLowerCase());
+            filtered = filtered.filter(item => String(item[2]).toLowerCase() === currentCustomerFilter.toLowerCase());
         }
 
-        const countSpan = document.getElementById('dbStats');
-        if (countSpan) countSpan.textContent = `Celkem forem: ${activeMolds.length}`;
+        if (currentPositionFilter !== 'ALL') {
+            filtered = filtered.filter(item => {
+                const p = String(item[1] || '').trim().toLowerCase();
+                if (currentPositionFilter === 'Mezisklad') {
+                    return p === 'mezisklad';
+                } else if (currentPositionFilter === 'Mezisklad Externí') {
+                    return p === 'mezisklad externí' || p === 'mezisklad externi';
+                }
+                return true;
+            });
+        }
 
-        if (activeMolds.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">V databázi nejsou žádné formy</td></tr>`;
+        stats.textContent = `Zobrazeno forem: ${filtered.length} z ${rawDatabase.filter(i => !i[4]).length}`;
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="no-data">Žádné formy v databázi</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = activeMolds.map(item => {
+        tbody.innerHTML = filtered.map((item, idx) => {
             const [num, pos, cust, status, isDel, productName, photosArr, navodkaUrl, prevPos] = item;
-            const rowKey = `db_${num}`;
-            const isExpanded = Boolean(expandedMoldsMap[rowKey]);
-            const btnExpandedClass = isExpanded ? 'expanded' : '';
-
             const custStyle = getCustomerStyle(cust);
             const statusPill = renderStatusPill(status);
-            const commentsHtml = renderCommentsListHtml(num);
+            const rowKey = `db_${num}_${idx}`;
+            const isExpanded = Boolean(expandedMoldsMap[rowKey]);
 
-            let cameraIconHtml = '';
-            if (photosArr.length > 0) {
-                cameraIconHtml = `<span style="font-size: 0.72rem; color: #3b82f6; font-weight: bold; margin-left: 0.2rem;" title="${photosArr.length} fotek">📷 ${photosArr.length}</span>`;
-            }
+            const commentsHtml = renderCommentsHtml(num);
 
             return `
                 <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
                     <td>
                         <div class="mold-cell-content">
-                            <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${btnExpandedClass}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
-                            <strong class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="cursor: pointer;">${escapeHtml(num)}</strong>
-                            ${cameraIconHtml}
+                            <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
+                            <span class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="font-weight: 600; cursor: pointer;">${escapeHtml(num)}</span>
+                            ${statusPill}
                         </div>
-                        <div class="product-name-sub">${productName ? escapeHtml(productName) : ''}</div>
-                        ${statusPill}
+                        ${productName ? `<div class="product-name-sub">Výroba: ${escapeHtml(productName)}</div>` : ''}
                         ${commentsHtml}
                     </td>
-                    <td style="text-align: center;">
-                        <span class="tag-customer" style="${custStyle}" onclick="filterCustomer('${escapeHtml(cust)}')" oncontextmenu="handleTagRightClick(event, '${escapeHtml(cust)}')">${escapeHtml(cust)}</span>
+                    <td>
+                        <span class="tag-customer" style="${custStyle}" onclick="openCustomerModal('${escapeHtml(num)}', '${escapeHtml(cust)}')" oncontextmenu="handleTagRightClick(event, '${escapeHtml(cust)}')">${escapeHtml(cust)}</span>
                     </td>
                     <td>
                         ${renderPositionCellHtml(num, pos, status, productName, prevPos)}
@@ -5010,70 +5086,119 @@
     }
 
     function renderDashboard() {
-        const dashboardMolds = rawDatabase.filter(item => {
-            if (item[4] === true) return false;
-            const s = String(item[3] || '').trim();
-            return s !== '';
-        });
-
-        const activeList = dashboardMolds.filter(item => {
-            const s = String(item[3] || '').trim();
-            if (currentDashboardStatusFilter === 'ALL') return true;
-            return s.toLowerCase() === currentDashboardStatusFilter.toLowerCase();
-        });
-
-        const countActiveElem = document.getElementById('dash-count-active');
-        const countUdrzbuElem = document.getElementById('dash-count-fronte-udrzbu');
-        const countOpravuElem = document.getElementById('dash-count-fronte-opravu');
-        const countNaUdrzbeElem = document.getElementById('dash-count-udrzbe');
-        const countPrycElem = document.getElementById('dash-count-oprave-pryc');
-
-        if (countActiveElem) countActiveElem.textContent = dashboardMolds.length;
-        if (countUdrzbuElem) countUdrzbuElem.textContent = dashboardMolds.filter(i => String(i[3]).trim().toLowerCase() === 've frontě na údržbu'.toLowerCase()).length;
-        if (countOpravuElem) countOpravuElem.textContent = dashboardMolds.filter(i => String(i[3]).trim().toLowerCase() === 've frontě na opravu'.toLowerCase()).length;
-        if (countNaUdrzbeElem) countNaUdrzbeElem.textContent = dashboardMolds.filter(i => String(i[3]).trim().toLowerCase() === 'na údržbě / na opravě'.toLowerCase()).length;
-        if (countPrycElem) countPrycElem.textContent = dashboardMolds.filter(i => String(i[3]).trim().toLowerCase() === 'na opravě pryč'.toLowerCase()).length;
-
-        const countSpan = document.getElementById('dashStats');
-        if (countSpan) countSpan.textContent = `Zobrazeno forem: ${activeList.length}`;
-
         const tbody = document.getElementById('dashboardTable');
+        const stats = document.getElementById('dashStats');
         if (!tbody) return;
 
-        if (activeList.length === 0) {
+        let activeMolds = rawDatabase.filter(item => !item[4]);
+
+        const cAll = activeMolds.filter(i => i[3] && i[3].trim() !== '').length;
+        const cUdrzbu = activeMolds.filter(i => i[3] === 'Ve frontě na údržbu').length;
+        const cOpravu = activeMolds.filter(i => i[3] === 'Ve frontě na opravu').length;
+        const cNaUdrzbe = activeMolds.filter(i => i[3] === 'Na údržbě / Na opravě').length;
+        const cPryc = activeMolds.filter(i => i[3] === 'Na opravě pryč').length;
+
+        document.getElementById('dash-count-active').textContent = cAll;
+        document.getElementById('dash-count-fronte-udrzbu').textContent = cUdrzbu;
+        document.getElementById('dash-count-fronte-opravu').textContent = cOpravu;
+        document.getElementById('dash-count-udrzbe').textContent = cNaUdrzbe;
+        document.getElementById('dash-count-oprave-pryc').textContent = cPryc;
+
+        let filtered = activeMolds.filter(i => i[3] && i[3].trim() !== '');
+        if (currentDashboardStatusFilter !== 'ALL') {
+            filtered = filtered.filter(i => i[3] === currentDashboardStatusFilter);
+        }
+
+        stats.textContent = `Zobrazeno forem ke kontrole: ${filtered.length}`;
+
+        if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">V tomto stavu nejsou žádné formy</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = activeList.map(item => {
+        tbody.innerHTML = filtered.map((item, idx) => {
             const [num, pos, cust, status, isDel, productName, photosArr, navodkaUrl, prevPos] = item;
-            const rowKey = `dash_${num}`;
-            const isExpanded = Boolean(expandedMoldsMap[rowKey]);
-            const btnExpandedClass = isExpanded ? 'expanded' : '';
-
             const custStyle = getCustomerStyle(cust);
             const statusPill = renderStatusPill(status);
-            const commentsHtml = renderCommentsListHtml(num);
+            const rowKey = `dash_${num}_${idx}`;
+            const isExpanded = Boolean(expandedMoldsMap[rowKey]);
 
-            let cameraIconHtml = '';
-            if (photosArr.length > 0) {
-                cameraIconHtml = `<span style="font-size: 0.72rem; color: #3b82f6; font-weight: bold; margin-left: 0.2rem;" title="${photosArr.length} fotek">📷 ${photosArr.length}</span>`;
-            }
+            const commentsHtml = renderCommentsHtml(num);
 
             return `
                 <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
                     <td>
                         <div class="mold-cell-content">
-                            <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${btnExpandedClass}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
-                            <strong class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="cursor: pointer;">${escapeHtml(num)}</strong>
-                            ${cameraIconHtml}
+                            <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
+                            <span class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="font-weight: 600; cursor: pointer;">${escapeHtml(num)}</span>
+                            ${statusPill}
                         </div>
-                        <div class="product-name-sub">${productName ? escapeHtml(productName) : ''}</div>
-                        ${statusPill}
+                        ${productName ? `<div class="product-name-sub">Výroba: ${escapeHtml(productName)}</div>` : ''}
                         ${commentsHtml}
                     </td>
-                    <td style="text-align: center;">
-                        <span class="tag-customer" style="${custStyle}" onclick="filterCustomer('${escapeHtml(cust)}')" oncontextmenu="handleTagRightClick(event, '${escapeHtml(cust)}')">${escapeHtml(cust)}</span>
+                    <td>
+                        <span class="tag-customer" style="${custStyle}" onclick="openCustomerModal('${escapeHtml(num)}', '${escapeHtml(cust)}')" oncontextmenu="handleTagRightClick(event, '${escapeHtml(cust)}')">${escapeHtml(cust)}</span>
+                    </td>
+                    <td>
+                        ${renderPositionCellHtml(num, pos, status, productName, prevPos)}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function handleSearch() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const tbody = document.getElementById('searchResults');
+        const stats = document.getElementById('searchStats');
+        if (!tbody) return;
+
+        if (!query) {
+            stats.textContent = '';
+            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Začněte psát do pole výše</td></tr>`;
+            return;
+        }
+
+        const activeMolds = rawDatabase.filter(item => !item[4]);
+        const matched = activeMolds.filter(item => {
+            const [num, pos, cust, status, isDel, productName] = item;
+            const matchId = String(num).toLowerCase().includes(query);
+            const matchPos = String(pos).toLowerCase().includes(query);
+            const matchCust = String(cust).toLowerCase().includes(query);
+            const matchProd = String(productName || '').toLowerCase().includes(query);
+            const matchStatus = String(status || '').toLowerCase().includes(query);
+            return matchId || matchPos || matchCust || matchProd || matchStatus;
+        });
+
+        stats.textContent = `Nalezeno výsledků: ${matched.length}`;
+
+        if (matched.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Nic nenalezeno</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = matched.map((item, idx) => {
+            const [num, pos, cust, status, isDel, productName, photosArr, navodkaUrl, prevPos] = item;
+            const custStyle = getCustomerStyle(cust);
+            const statusPill = renderStatusPill(status);
+            const rowKey = `search_${num}_${idx}`;
+            const isExpanded = Boolean(expandedMoldsMap[rowKey]);
+
+            const commentsHtml = renderCommentsHtml(num);
+
+            return `
+                <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
+                    <td>
+                        <div class="mold-cell-content">
+                            <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
+                            <span class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="font-weight: 600; cursor: pointer;">${escapeHtml(num)}</span>
+                            ${statusPill}
+                        </div>
+                        ${productName ? `<div class="product-name-sub">Výroba: ${escapeHtml(productName)}</div>` : ''}
+                        ${commentsHtml}
+                    </td>
+                    <td>
+                        <span class="tag-customer" style="${custStyle}" onclick="openCustomerModal('${escapeHtml(num)}', '${escapeHtml(cust)}')" oncontextmenu="handleTagRightClick(event, '${escapeHtml(cust)}')">${escapeHtml(cust)}</span>
                     </td>
                     <td>
                         ${renderPositionCellHtml(num, pos, status, productName, prevPos)}
@@ -5088,91 +5213,14 @@
         currentCustomerFilter = customerName;
         renderCustomerFilters();
         renderFullDatabase();
-        
-        if (element) {
-            const wrapper = document.querySelector('.customer-filters');
-            if (wrapper) {
-                const rect = element.getBoundingClientRect();
-                const wrapperRect = wrapper.getBoundingClientRect();
-                const scrollLeftTarget = wrapper.scrollLeft + (rect.left - wrapperRect.left) - (wrapperRect.width / 2) + (rect.width / 2);
-                wrapper.scrollTo({ left: scrollLeftTarget, behavior: 'smooth' });
-            }
-        }
     }
 
     function filterDashboardStatus(statusName, cardElement) {
         triggerHapticFeedback([12]);
-        currentDashboardStatusFilter = statusName;
         document.querySelectorAll('.dash-card').forEach(c => c.classList.remove('active'));
-        if (cardElement) cardElement.classList.add('active');
+        cardElement.classList.add('active');
+        currentDashboardStatusFilter = statusName;
         renderDashboard();
-    }
-
-    function handleSearch() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        const tbody = document.getElementById('searchResults');
-        const countSpan = document.getElementById('searchStats');
-        if (!tbody) return;
-
-        if (!query) {
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Začněte psát do pole výše</td></tr>`;
-            if (countSpan) countSpan.textContent = '';
-            return;
-        }
-
-        const matches = rawDatabase.filter(item => {
-            if (item[4] === true) return false;
-            const [num, pos, cust, status, isDel, productName] = item;
-            const matchId = String(num).toLowerCase().includes(query);
-            const matchProd = String(productName || '').toLowerCase().includes(query);
-            const matchPos = String(pos).toLowerCase().includes(query);
-            const matchCust = String(cust).toLowerCase().includes(query);
-            return matchId || matchProd || matchPos || matchCust;
-        });
-
-        if (countSpan) countSpan.textContent = `Nalezeno forem: ${matches.length}`;
-
-        if (matches.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Nic nenalezeno</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = matches.map(item => {
-            const [num, pos, cust, status, isDel, productName, photosArr, navodkaUrl, prevPos] = item;
-            const rowKey = `search_${num}`;
-            const isExpanded = Boolean(expandedMoldsMap[rowKey]);
-            const btnExpandedClass = isExpanded ? 'expanded' : '';
-
-            const custStyle = getCustomerStyle(cust);
-            const statusPill = renderStatusPill(status);
-            const commentsHtml = renderCommentsListHtml(num);
-
-            let cameraIconHtml = '';
-            if (photosArr.length > 0) {
-                cameraIconHtml = `<span style="font-size: 0.72rem; color: #3b82f6; font-weight: bold; margin-left: 0.2rem;" title="${photosArr.length} fotek">📷 ${photosArr.length}</span>`;
-            }
-
-            return `
-                <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
-                    <td>
-                        <div class="mold-cell-content">
-                            <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${btnExpandedClass}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
-                            <strong class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="cursor: pointer;">${escapeHtml(num)}</strong>
-                            ${cameraIconHtml}
-                        </div>
-                        <div class="product-name-sub">${productName ? escapeHtml(productName) : ''}</div>
-                        ${statusPill}
-                        ${commentsHtml}
-                    </td>
-                    <td style="text-align: center;">
-                        <span class="tag-customer" style="${custStyle}" onclick="filterCustomer('${escapeHtml(cust)}')" oncontextmenu="handleTagRightClick(event, '${escapeHtml(cust)}')">${escapeHtml(cust)}</span>
-                    </td>
-                    <td>
-                        ${renderPositionCellHtml(num, pos, status, productName, prevPos)}
-                    </td>
-                </tr>
-            `;
-        }).join('');
     }
 </script>
 </body>
