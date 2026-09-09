@@ -472,7 +472,10 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            padding-bottom: 2px;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            padding-left: 2px;
+            padding-right: 2px;
         }
         .customer-filters::-webkit-scrollbar {
             display: none;
@@ -484,8 +487,8 @@
             font-size: 0.74rem;
             font-weight: 600;
             cursor: pointer;
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.15s ease, background-color 0.2s ease;
+            border: 1.5px solid var(--border-color);
+            transition: box-shadow 0.2s ease, opacity 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
             user-select: none;
             -webkit-user-select: none;
             opacity: 0.85;
@@ -496,20 +499,20 @@
             position: relative;
             flex-shrink: 0;
             white-space: nowrap;
+            box-sizing: border-box;
         }
 
         .filter-chip:hover {
             opacity: 1;
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-            transform: translateY(-1px);
         }
 
         .filter-chip.active {
             opacity: 1;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-            border-color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            border-color: #0f172a !important;
             border-width: 1.5px;
-            transform: translateY(-1px);
+            transform: none;
         }
 
         .filter-divider {
@@ -731,8 +734,10 @@
                 overflow-x: auto;
                 scroll-behavior: smooth;
                 -webkit-overflow-scrolling: touch;
-                padding-bottom: 6px;
-                padding-right: 12px;
+                padding-top: 5px !important;
+                padding-bottom: 5px !important;
+                padding-left: 2px !important;
+                padding-right: 12px !important;
                 -ms-overflow-style: none;
                 scrollbar-width: none;
             }
@@ -1705,7 +1710,7 @@
             <div style="margin-bottom: 0.85rem;">
                 <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.3rem;">Umístění</div>
                 <div class="customer-filters" id="positionFilters">
-                    <span class="filter-chip active" tabindex="0" onclick="filterPosition('ALL', this)" style="background-color: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: normal;">Všechny pozice</span>
+                    <span class="filter-chip active" tabindex="0" onclick="filterPosition('ALL', this)" style="background-color: #ffffff; color: #0f172a;">Všechny pozice</span>
                     <span class="filter-divider" style="height: 14px;"></span>
                     <span class="filter-chip" tabindex="0" onclick="filterPosition('Mezisklad', this)" style="background-color: #4b5563; color: #ffffff; border-color: #4b5563;">Mezisklad</span>
                     <span class="filter-chip" tabindex="0" onclick="filterPosition('Mezisklad Externí', this)" style="background-color: #7c2d12; color: #ffffff; border-color: #7c2d12;">Mezisklad Externí</span>
@@ -3506,7 +3511,7 @@
         const savedScrollLeft = container.scrollLeft;
         const isAllActive = currentCustomerFilter === 'ALL' ? 'active' : '';
         let html = `
-            <span class="filter-chip ${isAllActive}" tabindex="0" onclick="filterCustomer('ALL', this)" style="background-color: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: normal;">
+            <span class="filter-chip ${isAllActive}" tabindex="0" onclick="filterCustomer('ALL', this)" style="background-color: #ffffff; color: #0f172a;">
                 Vše
             </span>
             <span class="filter-divider"></span>
