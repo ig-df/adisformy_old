@@ -148,6 +148,13 @@
             transition: transform 0.05s ease !important;
         }
 
+        @media (hover: hover) and (pointer: fine) {
+            .top-icon-btn:hover {
+                background-color: var(--border-color);
+                transform: translateY(-1px);
+            }
+        }
+
         .header-logo {
             text-align: center;
             padding: 1.25rem 1rem 0.5rem 1rem;
@@ -275,11 +282,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             width: 36px;
             height: 36px;
-        }
-
-        .top-icon-btn:hover {
-            background-color: var(--border-color);
-            transform: translateY(-1px);
         }
 
         .top-icon-btn img, 
@@ -2574,12 +2576,25 @@
 
     function closeOnlineUsersPopover() {
         const popover = document.getElementById('onlineUsersPopover');
+        const btn = document.getElementById('onlineUsersToggleBtn');
+        const cleanupBtn = () => {
+            if (btn) {
+                btn.classList.remove('is-touched');
+                if (typeof btn.blur === 'function') btn.blur();
+            }
+            document.querySelectorAll('.is-touched').forEach(el => el.classList.remove('is-touched'));
+        };
+        cleanupBtn();
+        setTimeout(cleanupBtn, 50);
+        setTimeout(cleanupBtn, 150);
+
         if (!popover || popover.style.display === 'none' || isOnlinePopoverClosing) return;
         isOnlinePopoverClosing = true;
         popover.classList.remove('popover-open');
         setTimeout(() => {
             popover.style.display = 'none';
             isOnlinePopoverClosing = false;
+            cleanupBtn();
         }, 360);
     }
 
@@ -2589,6 +2604,15 @@
         const popover = document.getElementById('onlineUsersPopover');
         const btn = document.getElementById('onlineUsersToggleBtn');
         
+        const cleanupBtn = () => {
+            if (btn) {
+                btn.classList.remove('is-touched');
+                if (typeof btn.blur === 'function') btn.blur();
+            }
+            document.querySelectorAll('.is-touched').forEach(el => el.classList.remove('is-touched'));
+        };
+        cleanupBtn();
+
         if (!popover || !btn) return;
 
         if (popover.classList.contains('popover-open')) {
@@ -2602,6 +2626,7 @@
             void popover.offsetWidth;
             popover.classList.add('popover-open');
             renderOnlineUsers();
+            setTimeout(cleanupBtn, 80);
         }
     }
 
@@ -2937,6 +2962,14 @@
         }, { passive: true });
 
         document.addEventListener('pointercancel', () => {
+            document.querySelectorAll('.is-touched').forEach(el => el.classList.remove('is-touched'));
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => {
+            document.querySelectorAll('.is-touched').forEach(el => el.classList.remove('is-touched'));
+        }, { passive: true });
+
+        document.addEventListener('touchcancel', () => {
             document.querySelectorAll('.is-touched').forEach(el => el.classList.remove('is-touched'));
         }, { passive: true });
     }
