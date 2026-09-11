@@ -3612,51 +3612,6 @@
         customConfirmCallback = null;
     }
 
-    function closeModalById(modalId) {
-        if (!modalId) return;
-        if (modalId === 'numberScannerModal') {
-            closeNumberScanner();
-        } else if (modalId === 'pdfModal') {
-            closePdfModal();
-        } else if (modalId === 'customConfirmModal') {
-            closeCustomConfirm(false);
-        } else if (modalId === 'fullEditModal') {
-            closeFullEditModal();
-        } else if (modalId === 'positionModal') {
-            closePositionModal();
-        } else if (modalId === 'customerModal') {
-            closeCustomerModal();
-        } else if (modalId === 'photoModal') {
-            closePhotoModal();
-        } else if (modalId === 'commentModal') {
-            closeCommentModal();
-        } else if (modalId === 'viewCommentModal') {
-            closeViewCommentModal();
-        } else if (modalId === 'addModal') {
-            closeAddModal();
-        } else if (modalId === 'trashModal') {
-            closeTrashModal();
-        } else if (modalId === 'logsModal') {
-            closeLogsModal();
-        } else if (modalId === 'clearLogsModal') {
-            closeClearLogsModal();
-        } else if (modalId === 'heliosAdminModal') {
-            closeHeliosAdminModal();
-        } else if (modalId === 'userActivityModal') {
-            closeUserActivityModal();
-        } else if (modalId === 'loginModal') {
-            closeLoginModal();
-        } else if (modalId === 'editCustomerColorModal') {
-            closeEditCustomerColorModal();
-        } else if (modalId === 'addCustomerModal') {
-            closeAddCustomerModal();
-        } else if (modalId === 'directProdModal') {
-            closeDirectProdModal();
-        } else {
-            hideModalAnimated(modalId);
-        }
-    }
-
     const supabaseClient = window.supabase.createClient(API_URL, API_KEY);
     const BASE_SYSTEM_CUSTOMERS = ["Škoda", "Novares", "Witte", "Scherdel", "AFSI", "Adient", "Mubea", "Ideal", "Others"];
 
@@ -4810,18 +4765,8 @@
 
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) closeModalById(overlay.id);
+                if (e.target === overlay) hideModalAnimated(overlay.id);
             });
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const activeModals = document.querySelectorAll('.modal-overlay.active');
-                if (activeModals.length > 0) {
-                    const topModal = activeModals[activeModals.length - 1];
-                    closeModalById(topModal.id);
-                }
-            }
         });
 
         document.addEventListener('click', (e) => {
@@ -5244,18 +5189,10 @@
         let csv = "\uFEFFID_Formy;Výroba;Zákazník;Pozice;Stav;Poslední_Komentář;Foto;Poslední_Aktualizace\n";
         const nowStr = new Date().toLocaleString('cs-CZ');
         
-        const escapeCsvCell = (val) => {
-            const str = String(val ?? '');
-            return `"${str.replace(/"/g, '""')}"`;
-        };
-
         activeMolds.forEach(i => {
-            const formId = String(i[0] || '').trim();
-            const comms = allComments.filter(c => String(c.mold_id) === formId);
+            const comms = allComments.filter(c => String(c.mold_id) === String(i[0]));
             const lastC = (comms.length > 0 && comms[0].comment) ? comms[0].comment : "";
-            const photosStr = Array.isArray(i[6]) ? i[6].join(', ') : String(i[6] || '');
-            
-            csv += `${escapeCsvCell(i[0])};${escapeCsvCell(i[5])};${escapeCsvCell(i[2])};${escapeCsvCell(i[1])};${escapeCsvCell(i[3])};${escapeCsvCell(lastC)};${escapeCsvCell(photosStr)};${escapeCsvCell(nowStr)}\n`;
+            csv += `${i[0]};${i[5]};${i[2]};${i[1]};${i[3]};"${lastC.replace(/"/g, '""')}";"${i[6]}";"${nowStr}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -5270,7 +5207,6 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        setTimeout(() => { URL.revokeObjectURL(url); }, 1200);
         showToast(`Soubor ${filename} stažen`);
     }
 
@@ -5824,10 +5760,6 @@
         if (currentActive === tabName || isTabTransitioning) return;
         isTabTransitioning = true;
 
-        if (typeof isScannerRunning !== 'undefined' && isScannerRunning) {
-            closeNumberScanner();
-        }
-
         tabs.forEach(t => {
             document.getElementById(`btn-${t}`).classList.toggle('active', t === tabName);
         });
@@ -5934,11 +5866,7 @@
             }
         } else {
             Object.keys(expandedMoldsMap).forEach(id => {
-                if (expandedMoldsMap[id] && id !== String(rowKey)) {
-                    const rowEl = document.getElementById(`accordion-trigger-${id}`);
-                    const targetMoldId = (rowEl && rowEl.getAttribute('data-mold-id')) || id.split('_').slice(1, -1).join('_') || id;
-                    toggleAccordion(id, targetMoldId);
-                }
+                if (expandedMoldsMap[id] && id !== String(rowKey)) toggleAccordion(id, id.split('_').pop());
             });
             expandedMoldsMap[rowKey] = true;
             if (btn) btn.classList.add('expanded');
@@ -6095,37 +6023,31 @@
 
     async function removeSpecificNavodka(moldId, index, rowKey) {
         triggerHapticFeedback([12]);
-        if (!checkSuperUserOrPrompt() || isSubmittingAction) return;
+        if (!checkSuperUserOrPrompt()) return;
         const itemIdx = rawDatabase.findIndex(i => String(i[0]) === String(moldId));
         if (itemIdx === -1) return;
 
-        showCustomConfirm("Smazání návodky", "Opravdu chcete smazat tuto návodku?", "Smazat", async () => {
-            isSubmittingAction = true;
-            let navodkaUrl = String(rawDatabase[itemIdx][7] || '');
-            let currentNavodky = [];
-            try {
-                const parsed = navodkaUrl.startsWith("[") ? JSON.parse(navodkaUrl) : (navodkaUrl ? [{url: navodkaUrl, title: "Návodka 1"}] : []);
-                currentNavodky = Array.isArray(parsed) ? parsed : [{url: navodkaUrl, title: "Návodka 1"}];
-            } catch(e) { 
-                currentNavodky = navodkaUrl ? [{url: navodkaUrl, title: "Návodka 1"}] : []; 
-            }
+        let navodkaUrl = rawDatabase[itemIdx][7] || '';
+        let currentNavodky = [];
+        try {
+            const parsed = navodkaUrl.startsWith("[") ? JSON.parse(navodkaUrl) : [{url: navodkaUrl, title: "Návodka 1"}];
+            currentNavodky = Array.isArray(parsed) ? parsed : [{url: navodkaUrl, title: "Návodka 1"}];
+        } catch(e) { currentNavodky = [{url: navodkaUrl, title: "Návodka 1"}]; }
 
-            currentNavodky.splice(index, 1);
-            const newNavodkaUrl = currentNavodky.length > 0 ? JSON.stringify(currentNavodky) : '';
-            rawDatabase[itemIdx][7] = newNavodkaUrl;
-            
-            refreshAccordionContent(moldId, rowKey);
-            showToast("Návodka byla smazána");
+        currentNavodky.splice(index, 1);
+        const newNavodkaUrl = currentNavodky.length > 0 ? JSON.stringify(currentNavodky) : '';
+        rawDatabase[itemIdx][7] = newNavodkaUrl;
+        
+        refreshAccordionContent(moldId, rowKey);
+        showToast("Návodka byla smazána");
 
-            try {
-                await fetch(`${API_URL}/rest/v1/molds?id=eq.${moldId}`, {
-                    method: 'PATCH',
-                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                    body: JSON.stringify({ navodka_url: newNavodkaUrl })
-                });
-            } catch (e) { console.error(e); }
-            finally { isSubmittingAction = false; }
-        });
+        try {
+            await fetch(`${API_URL}/rest/v1/molds?id=eq.${moldId}`, {
+                method: 'PATCH',
+                headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ navodka_url: newNavodkaUrl })
+            });
+        } catch (e) { console.error(e); }
     }
 
     async function saveAccordionDetails(moldId, rowKey) {
@@ -7966,7 +7888,7 @@
                             </div>
                             <div class="empty-state-title">Forma <span class="highlight-mold">#${cleanQuery}</span> nebyla nalezena</div>
                             <div class="empty-state-desc">V evidenci zatím neexistuje záznam odpovídající tomuto číslu nebo výrazu.</div>
-                            <button type="button" class="empty-state-btn" onclick="openAddModal(document.getElementById('searchInput') ? document.getElementById('searchInput').value.trim() : '')">
+                            <button type="button" class="empty-state-btn" onclick="openAddModal('${cleanQuery.replace(/'/g, "\\'")}')">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
