@@ -475,27 +475,38 @@
             margin-bottom: 0.85rem;
             position: relative;
             width: 100%;
+            display: flex;
+            align-items: center;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--text-muted);
+            box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
         }
 
         .search-input {
-            width: 100%;
-            padding: 0.8rem 3.4rem 0.8rem 1rem;
+            flex: 1;
+            min-width: 0;
+            padding: 0.8rem 0.5rem 0.8rem 1rem;
             font-size: 1.1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border: none;
+            border-radius: 8px 0 0 8px;
             outline: none;
-            transition: all 0.2s ease;
-            background-color: var(--input-bg);
+            background: transparent;
             color: var(--text-main);
             text-transform: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: none;
         }
 
         .search-scan-icon-btn {
-            position: absolute;
-            right: 0.35rem;
-            top: 50%;
-            transform: translateY(-50%);
+            position: relative;
+            flex-shrink: 0;
+            margin-right: 0.35rem;
             background: transparent;
             border: none;
             color: var(--text-muted);
@@ -521,18 +532,13 @@
         }
 
         .search-scan-icon-btn:active {
-            transform: translateY(-50%) scale(0.9) !important;
+            transform: scale(0.9) !important;
             background-color: var(--border-color);
         }
 
         .search-scan-icon-btn svg {
             width: 21px;
             height: 21px;
-        }
-
-        .search-input:focus {
-            border-color: var(--text-muted);
-            box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
         }
 
         .stats-bar {
@@ -3602,6 +3608,12 @@
         setTimeout(() => {
             modal.style.display = 'none';
         }, 320);
+    }
+
+    function isModalOpen(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return false;
+        return modal.classList.contains('active') || modal.style.display === 'flex' || modal.style.display === 'block';
     }
 
     let customConfirmCallback = null;
