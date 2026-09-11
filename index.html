@@ -27,6 +27,10 @@
     <meta name="apple-mobile-web-app-title" content="Adis Formy">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- PDF.js for native in-app rendering of návodky (no external apps required) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Tesseract.js for fast camera scanning of numeric mold labels -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -136,22 +140,17 @@
             position: relative;
         }
 
-        button, .filter-chip, .dash-card, .badge-position, tr, .tag-customer, .add-customer-chip, .top-icon-btn, .auth-btn, .superuser-badge-btn, .comment-item, .edit-btn, .comment-btn, .floating-corner-btn, .floating-corner-btn-left, .mold-clickable-id, .tab-btn {
+        button:not(.toggle-accordion-btn), .filter-chip, .dash-card, .badge-position, tr, .tag-customer, .add-customer-chip, .top-icon-btn, .auth-btn, .superuser-badge-btn, .comment-item, .edit-btn, .comment-btn, .floating-corner-btn, .floating-corner-btn-left, .mold-clickable-id, .tab-btn {
             user-select: none;
             -webkit-user-select: none;
             transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease, filter 0.18s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        button:active, .filter-chip:active, .dash-card:active, .badge-position:active, .tag-customer:active, .add-customer-chip:active, .top-icon-btn:active, .auth-btn:active, .superuser-badge-btn:active, .floating-corner-btn:active, .floating-corner-btn-left:active, .toggle-accordion-btn:active, .tab-btn:active, .mold-clickable-id:active, .is-touched {
+        button:not(.toggle-accordion-btn):active, .filter-chip:active, .dash-card:active, .badge-position:active, .tag-customer:active, .add-customer-chip:active, .top-icon-btn:active, .auth-btn:active, .superuser-badge-btn:active, .floating-corner-btn:active, .floating-corner-btn-left:active, .tab-btn:active, .mold-clickable-id:active, .is-touched:not(.toggle-accordion-btn) {
             transform: scale(0.91) !important;
             opacity: 0.82 !important;
             filter: brightness(0.91) contrast(1.05) !important;
             transition: transform 0.05s ease, filter 0.05s ease !important;
-        }
-
-        .toggle-accordion-btn.expanded:active,
-        .toggle-accordion-btn.expanded.is-touched {
-            transform: rotate(180deg) scale(0.88) !important;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -474,11 +473,13 @@
 
         .search-box {
             margin-bottom: 0.85rem;
+            position: relative;
+            width: 100%;
         }
 
         .search-input {
             width: 100%;
-            padding: 0.8rem 1rem;
+            padding: 0.8rem 3.1rem 0.8rem 1rem;
             font-size: 1.1rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -487,6 +488,39 @@
             background-color: var(--input-bg);
             color: var(--text-main);
             text-transform: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .search-scan-icon-btn {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.45rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: color 0.2s ease, transform 0.15s ease, background-color 0.2s ease;
+            z-index: 2;
+        }
+
+        .search-scan-icon-btn:hover {
+            color: var(--text-main);
+            background-color: var(--border-color);
+        }
+
+        .search-scan-icon-btn:active {
+            transform: translateY(-50%) scale(0.9) !important;
+        }
+
+        .search-scan-icon-btn svg {
+            width: 21px;
+            height: 21px;
         }
 
         .search-input:focus {
@@ -506,7 +540,7 @@
         .customer-filters-wrapper {
             position: relative;
             margin-bottom: 0.5rem;
-            padding-right: 0;
+            width: 100%;
         }
 
         .customer-filters {
@@ -519,11 +553,24 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            -ms-overflow-style: none;
             padding-top: 4px;
             padding-bottom: 4px;
             padding-left: 2px;
             padding-right: 2px;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            width: 100%;
+            touch-action: pan-x pan-y;
+            scroll-behavior: smooth;
         }
+
+        .customer-filters.is-dragging {
+            cursor: grabbing !important;
+            scroll-behavior: auto;
+        }
+
         .customer-filters::-webkit-scrollbar {
             display: none;
         }
@@ -669,6 +716,177 @@
             pointer-events: auto;
         }
 
+        .online-user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.45rem 0.6rem;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 6px;
+            background: var(--card-bg, #ffffff);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .online-user-item:hover {
+            border-color: rgba(0, 0, 0, 0.45) !important;
+            background-color: rgba(0, 0, 0, 0.02) !important;
+        }
+
+        .online-user-item:active {
+            transform: scale(0.99);
+            border-color: rgba(0, 0, 0, 0.6) !important;
+        }
+
+        .table-container {
+            flex: 1;
+            max-height: 520px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+            transition: min-height 0.47s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            table-layout: fixed;
+            position: relative;
+            z-index: 2;
+            background: transparent;
+        }
+
+        /* Gmail-style Swipe Action Layer */
+        tr[id^="accordion-trigger-"] {
+            position: relative;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        tr[id^="accordion-trigger-"] td {
+            background-color: var(--card-bg, #ffffff) !important;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
+            position: relative;
+            z-index: 2;
+            border-bottom: 1px solid var(--border-color);
+            border-left: none !important;
+            border-right: none !important;
+            border-top: none !important;
+            box-shadow: none !important;
+            transition: background-color 0.16s ease;
+        }
+
+        /* High-performance safe staggered cascade for list items */
+        @keyframes safeCascadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        tr[id^="accordion-trigger-"].cascade-item {
+            animation: safeCascadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: var(--cascade-delay, 0ms);
+            will-change: opacity, transform;
+        }
+
+        /* Tap / Hold elevation state: tile rises as ONE solid unified block without any inner cell shadow lines */
+        tr[id^="accordion-trigger-"].swipe-armed {
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.12));
+            z-index: 5;
+        }
+
+        tr[id^="accordion-trigger-"].swipe-dragging {
+            filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.18));
+            z-index: 5;
+        }
+
+        /* Gmail-style light gray background track physically under the sliding tile */
+        .gmail-swipe-backdrop {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 1;
+            display: none;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            box-sizing: border-box;
+        }
+
+        .gmail-swipe-action-item {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .gmail-swipe-action-item.action-left {
+            left: 1.25rem;
+        }
+
+        .gmail-swipe-action-item.action-right {
+            right: 1.25rem;
+        }
+
+        .gmail-swipe-icon-pill {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .gmail-swipe-icon-pill img {
+            width: 18px;
+            height: 18px;
+            transition: filter 0.15s ease;
+        }
+
+        .gmail-swipe-icon-pill.armed-trigger {
+            background-color: #0f172a !important;
+            border-color: #0f172a !important;
+            box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.22) !important;
+            transform: scale(1.18);
+        }
+
+        .gmail-swipe-icon-pill.armed-trigger img {
+            filter: brightness(0) invert(1) !important;
+        }
+
+        .gmail-swipe-action-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
         .context-menu-item {
             display: flex;
             align-items: center;
@@ -688,24 +906,6 @@
 
         .context-menu-item.danger-item:hover {
             background-color: var(--error-bg);
-        }
-
-        .table-container {
-            flex: 1;
-            max-height: 520px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            position: relative;
-            -webkit-overflow-scrolling: touch;
-            transition: min-height 0.47s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            table-layout: fixed;
         }
 
         th {
@@ -945,6 +1145,92 @@
 
         td.no-data, td.no-data-centered { text-align: center !important; padding: 2.5rem !important; color: var(--text-muted); font-size: 0.95rem; }
 
+        /* Rich Minimalist Empty States (Monochrome) */
+        .empty-state-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2.25rem 1rem;
+            max-width: 420px;
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        .empty-state-icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.85rem;
+            color: #475569;
+            box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        .empty-state-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.35rem;
+            line-height: 1.35;
+        }
+
+        .empty-state-title .highlight-mold {
+            color: #0f172a;
+            background: #f1f5f9;
+            padding: 0.1rem 0.45rem;
+            border-radius: 5px;
+            border: 1px solid #e2e8f0;
+            font-family: monospace;
+            font-weight: 700;
+        }
+
+        .empty-state-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.45;
+            max-width: 320px;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.15s ease;
+        }
+
+        .empty-state-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-state-btn:active {
+            transform: scale(0.96);
+            background: #f1f5f9;
+        }
+
+        .empty-state-btn svg {
+            stroke: currentColor;
+            flex-shrink: 0;
+        }
+
         tbody tr {
             user-select: none;
             transition: background-color 0.15s ease, transform 0.3s ease, opacity 0.3s ease;
@@ -971,11 +1257,16 @@
         tr.row-error td { background-color: var(--error-bg) !important; color: var(--error-text) !important; border-color: var(--error-border) !important; }
 
         .toggle-accordion-btn {
+            -webkit-appearance: none;
+            appearance: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 22px;
             height: 22px;
+            padding: 0;
+            line-height: 1;
+            text-align: center;
             border-radius: 4px;
             border: 1px solid var(--border-color);
             background: transparent;
@@ -985,11 +1276,19 @@
             cursor: pointer;
             flex-shrink: 0;
             margin-right: 0.4rem;
-            transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1), 
-                        color 0.3s ease, 
-                        background-color 0.3s ease, 
-                        border-color 0.3s ease,
-                        box-shadow 0.3s ease;
+            transform: rotate(0deg) translateZ(0);
+            -webkit-transform: rotate(0deg) translateZ(0);
+            transform-origin: 50% 50%;
+            -webkit-transform-origin: 50% 50%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: transform, color, background-color, border-color;
+            transition: transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1), 
+                        -webkit-transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1), 
+                        color 0.38s ease, 
+                        background-color 0.38s ease, 
+                        border-color 0.38s ease,
+                        box-shadow 0.38s ease !important;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -1001,10 +1300,11 @@
         }
 
         .toggle-accordion-btn.expanded {
-            background-color: var(--text-main);
-            color: var(--card-bg);
-            border-color: var(--text-main);
-            transform: rotate(180deg);
+            background-color: var(--text-main) !important;
+            color: var(--card-bg) !important;
+            border-color: var(--text-main) !important;
+            transform: rotate(180deg) translateZ(0) !important;
+            -webkit-transform: rotate(180deg) translateZ(0) !important;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
         }
 
@@ -1220,7 +1520,51 @@
             margin-left: 0.2rem;
         }
 
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .status-dot { 
+            width: 6px; 
+            height: 6px; 
+            border-radius: 50%; 
+            display: inline-block; 
+            flex-shrink: 0; 
+        }
+
+        /* Радиальные импульсы для статусов во вкладке Дашборд */
+        .dash-card .status-dot,
+        #tab-dashboard .status-dot {
+            position: relative;
+            width: 7px;
+            height: 7px;
+        }
+
+        .dash-card .status-dot::after,
+        #tab-dashboard .status-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: inherit;
+            transform: translate(-50%, -50%);
+            animation: statusRadialPulse 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+            pointer-events: none;
+        }
+
+        @keyframes statusRadialPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.9;
+            }
+            85% {
+                transform: translate(-50%, -50%) scale(3.4);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(3.5);
+                opacity: 0;
+            }
+        }
 
         .dot-green { background-color: var(--success-badge); }
         .dot-red { background-color: var(--error-badge); }
@@ -1409,7 +1753,460 @@
         }
 
         .modal-overlay.active { opacity: 1; }
-        #photoModal, #pdfModal { z-index: 2000 !important; }
+        #photoModal, #pdfModal, #numberScannerModal { z-index: 2500 !important; }
+
+        /* In-App PDF Viewer (Návodky) Styles */
+        #pdfModal .modal-card {
+            max-width: 980px;
+            width: 96%;
+            height: 92vh;
+            max-height: 94vh;
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.45rem;
+            padding: 0.55rem 0.85rem;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .pdf-toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .pdf-tool-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 7px;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: all 0.15s ease;
+            height: 32px;
+            user-select: none;
+            text-decoration: none;
+        }
+
+        .pdf-tool-btn:hover:not(:disabled) {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .pdf-tool-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .pdf-tool-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .pdf-page-indicator, .pdf-zoom-indicator {
+            font-size: 0.84rem;
+            color: var(--text-main);
+            font-weight: 600;
+            padding: 0 0.4rem;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .pdf-scroll-area {
+            flex: 1;
+            overflow: auto;
+            background: #334155;
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #pdfCanvas {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            background: #ffffff;
+            border-radius: 4px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        #pdfImageViewer {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            background: #ffffff;
+            display: none;
+        }
+
+        .pdf-spinner-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.85rem;
+            color: #f8fafc;
+            padding: 3rem 1rem;
+            margin: auto;
+        }
+
+        .pdf-spinner {
+            width: 38px;
+            height: 38px;
+            border: 3.5px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .pdf-error-box {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            color: #f8fafc;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 420px;
+            margin: auto;
+            text-align: center;
+        }
+
+        /* Number Tag Camera Scanner Styles */
+        #numberScannerModal .modal-card {
+            max-width: 500px;
+            width: 96%;
+            height: 90vh;
+            max-height: 740px;
+            background: #090d16;
+            color: #f8fafc;
+            border: 1px solid #1e293b;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border-radius: 18px;
+        }
+
+        @media (max-width: 600px) {
+            #numberScannerModal {
+                padding: 0 !important;
+            }
+            #numberScannerModal .modal-card {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                border-radius: 0 !important;
+                border: none !important;
+            }
+            #pdfModal {
+                padding: 0.25rem !important;
+            }
+            #pdfModal .modal-card {
+                width: 100% !important;
+                height: 96vh !important;
+                border-radius: 10px !important;
+            }
+        }
+
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 20;
+        }
+
+        .scanner-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .scanner-viewport-wrapper {
+            position: relative;
+            flex: 1;
+            background: #000000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #scannerVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-overlay-mask {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-reticle {
+            position: relative;
+            width: 290px;
+            height: 125px;
+            max-width: 84%;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .scanner-reticle.matched {
+            border-color: #22c55e !important;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65), 0 0 28px rgba(34, 197, 94, 0.75) !important;
+        }
+
+        .reticle-corner {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-color: #38bdf8;
+            border-style: solid;
+            pointer-events: none;
+        }
+
+        .reticle-corner.tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 14px; }
+        .reticle-corner.tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 14px; }
+        .reticle-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 14px; }
+        .reticle-corner.br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 14px; }
+
+        .scanner-reticle.matched .reticle-corner {
+            border-color: #22c55e !important;
+        }
+
+        .scanner-laser-line {
+            position: absolute;
+            left: 6px;
+            right: 6px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #38bdf8 20%, #60a5fa 80%, transparent);
+            box-shadow: 0 0 10px #38bdf8;
+            border-radius: 2px;
+            animation: scanLaser 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes scanLaser {
+            0% { top: 12%; opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { top: 88%; opacity: 0.3; }
+        }
+
+        .scanner-guide-text {
+            position: absolute;
+            bottom: calc(50% + 80px);
+            color: #f1f5f9;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 0.45rem 1rem;
+            border-radius: 24px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .scanner-controls-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.25rem 1.25rem 1.5rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(9, 13, 22, 0.88) 30%, #090d16 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 25;
+        }
+
+        .scanner-status-pill {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(30, 41, 59, 0.7);
+            padding: 0.3rem 0.85rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .scanner-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #38bdf8;
+            box-shadow: 0 0 8px #38bdf8;
+            animation: pulseDot 1.4s infinite ease-in-out;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.15); }
+        }
+
+        .scanner-snap-btn {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 30px;
+            padding: 0.75rem 1.6rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
+            transition: all 0.2s ease;
+        }
+
+        .scanner-snap-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .scanner-snap-btn:active {
+            transform: scale(0.95);
+        }
+
+        .scanner-result-drawer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f172a;
+            border-top: 2.5px solid #22c55e;
+            padding: 1.15rem 1.25rem 1.35rem;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+            transform: translateY(105%);
+            transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 30;
+        }
+
+        .scanner-result-drawer.active {
+            transform: translateY(0);
+        }
+
+        .scanner-result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(34, 197, 94, 0.18);
+            color: #4ade80;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.5rem;
+        }
+
+        .scanner-mold-num {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.35rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .scanner-mold-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            margin-bottom: 0.95rem;
+            background: rgba(30, 41, 59, 0.6);
+            padding: 0.65rem 0.85rem;
+            border-radius: 9px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .scanner-detail-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.45rem;
+        }
+
+        .scanner-detail-label {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            min-width: 58px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .scanner-detail-value {
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .scanner-actions-row {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .scanner-actions-row button {
+            flex: 1;
+        }
+
+        /* Pulse glow for opened mold row after scan */
+        @keyframes rowHighlightPulse {
+            0% { background-color: rgba(34, 197, 94, 0.35); }
+            50% { background-color: rgba(34, 197, 94, 0.18); }
+            100% { background-color: transparent; }
+        }
+
+        .row-highlight-pulse {
+            animation: rowHighlightPulse 2.4s ease-out;
+        }
 
         .modal-card {
             background: var(--card-bg); 
@@ -1566,10 +2363,19 @@
         .helios-accordion-arrow {
             font-size: 0.75rem;
             color: var(--text-muted);
-            transition: transform 0.28s cubic-bezier(0.34, 1.3, 0.64, 1), color 0.28s ease;
+            transform: rotate(0deg) translateZ(0);
+            -webkit-transform: rotate(0deg) translateZ(0);
+            transform-origin: 50% 50%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: transform, color;
+            transition: transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1), 
+                        -webkit-transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1), 
+                        color 0.38s ease;
         }
         .helios-accordion-card.open .helios-accordion-arrow {
-            transform: rotate(180deg);
+            transform: rotate(180deg) translateZ(0);
+            -webkit-transform: rotate(180deg) translateZ(0);
             color: var(--text-main);
         }
 
@@ -1835,12 +2641,26 @@
         <div id="tab-search" class="tab-content active">
             <div class="search-box">
                 <input type="text" id="searchInput" class="search-input" tabindex="0" placeholder="Zadejte číslo formy, výrobu, pozici nebo zákazníka..." oninput="handleSearch()" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">
+                <button type="button" class="search-scan-icon-btn" onclick="openNumberScanner()" title="Skenovat číslo formy fotoaparátem" aria-label="Skenovat číslo formy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                        <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                        <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                        <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                        <circle cx="12" cy="12" r="3.2"></circle>
+                        <path d="M16.5 7.5v.01"></path>
+                    </svg>
+                </button>
             </div>
             <div class="stats-bar"><span id="searchStats"></span></div>
             <div class="table-container" id="searchTableContainer">
                 <table id="searchTable">
                     <thead><tr><th>Číslo formy</th><th>Zákazník</th><th>Pozice</th></tr></thead>
-                    <tbody id="searchResults"><tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Začněte psát do pole výše</td></tr></tbody>
+                    <tbody id="searchResults">
+                        <tr>
+                            <td colspan="3" class="no-data-centered" style="text-align: center !important; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 1rem !important;">Začněte psát do pole výše</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -1848,9 +2668,7 @@
         <div id="tab-database" class="tab-content">
             <div style="margin-bottom: 0.75rem;">
                 <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.3rem;">Zákazníci</div>
-                <div class="customer-filters-wrapper" style="margin-bottom: 0;">
-                    <div class="customer-filters" id="customerFilters"></div>
-                </div>
+                <div class="customer-filters" id="customerFilters"></div>
             </div>
 
             <div style="height: 1px; background-color: var(--border-color); margin: 0.55rem 0; opacity: 0.6;"></div>
@@ -1904,7 +2722,22 @@
             <div class="table-container" id="dashboardTableContainer">
                 <table>
                     <thead><tr><th>Číslo formy</th><th>Zákazník</th><th>Pozice</th></tr></thead>
-                    <tbody id="dashboardTable"><tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">V seznamu zatím nejsou žádné formy ke kontrole</td></tr></tbody>
+                    <tbody id="dashboardTable">
+                        <tr>
+                            <td colspan="3" style="padding: 0 !important; background: transparent; border: none;">
+                                <div class="empty-state-card">
+                                    <div class="empty-state-icon-box">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="empty-state-title">Vše v pořádku</div>
+                                    <div class="empty-state-desc">V tomto vybraném stavu kontroly se momentálně nenachází žádná forma.</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -1942,6 +2775,22 @@
     </div>
 </div>
 
+<!-- Gmail-style Under-layer Track (Revealed under sliding row tile) -->
+<div id="gmailSwipeBackdrop" class="gmail-swipe-backdrop">
+    <!-- Left action (revealed when swiping right -> Poznámka / Comment) -->
+    <div class="gmail-swipe-action-item action-left" id="swipeActionLeft">
+        <div class="gmail-swipe-icon-pill">
+            <img src="icon5.png" alt="Poznámka">
+        </div>
+    </div>
+    <!-- Right action (revealed when swiping left -> Upravit / Gear) -->
+    <div class="gmail-swipe-action-item action-right" id="swipeActionRight">
+        <div class="gmail-swipe-icon-pill">
+            <img src="icon1.png" alt="Upravit">
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="loginModal">
     <div class="modal-card" style="max-width: 360px;">
         <div class="modal-header">
@@ -1972,6 +2821,56 @@
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
             <button class="btn-secondary" id="clearLogsBtnFooter" style="background: rgba(239, 68, 68, 0.2); color: var(--error-badge); display: none;" onclick="promptClearLogs()">Vyčistit historii</button>
             <button class="btn-primary" onclick="closeLogsModal()" style="margin-left: auto;">Zavřít</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="userActivityModal">
+    <div class="modal-card" style="max-width: 580px; max-height: 88vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="flex-shrink: 0; padding-bottom: 0.5rem;">
+            <div>
+                <h3 id="userActivityTitle" style="margin-bottom: 2px;">Aktivita uživatele</h3>
+                <div id="userActivitySubtitle" style="font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 0.5rem; align-items: center; margin-top: 2px;"></div>
+            </div>
+            <button class="close-modal-btn" onclick="closeUserActivityModal()">✕</button>
+        </div>
+        <div class="modal-body" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0.75rem; padding-top: 0.4rem;">
+            <!-- KPI Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;" id="userActivitySummaryCards">
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.45rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Celkem</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);" id="uactTotal">0</div>
+                </div>
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.45rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Změny</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);" id="uactMoves">0</div>
+                </div>
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.45rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Hledání</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);" id="uactSearches">0</div>
+                </div>
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.45rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Poznámky</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);" id="uactNotes">0</div>
+                </div>
+            </div>
+
+            <!-- Filter chips for activity types -->
+            <div style="display: flex; gap: 0.35rem; overflow-x: auto; padding-bottom: 2px;" id="uactFilterBar">
+                <button class="filter-chip active" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('ALL', this)">Vše</button>
+                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('SEARCH', this)">Hledání</button>
+                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('MOVE', this)">Pozice a stavy</button>
+                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('NOTE', this)">Poznámky & Foto</button>
+                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('VIEW', this)">Návodky & Skener</button>
+            </div>
+
+            <!-- Activity Items List -->
+            <div id="userActivityList" style="display: flex; flex-direction: column; gap: 0.4rem; min-height: 120px;">
+                <div class="no-data">Načítání aktivity...</div>
+            </div>
+        </div>
+        <div class="modal-footer" style="flex-shrink: 0; justify-content: flex-end; padding-top: 0.5rem;">
+            <button class="btn-primary" onclick="closeUserActivityModal()">Zavřít</button>
         </div>
     </div>
 </div>
@@ -2027,16 +2926,145 @@
 </div>
 
 <div class="modal-overlay" id="pdfModal">
-    <div class="modal-card" style="max-width: 850px; width: 95%; height: 85vh;">
+    <div class="modal-card">
         <div class="modal-header">
-            <h3 id="pdfModalTitle">Návodka k výrobě (PDF)</h3>
-            <button class="close-modal-btn" onclick="closePdfModal()">✕</button>
+            <h3 id="pdfModalTitle" style="font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Návodka k výrobě</h3>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <a id="pdfDownloadLink" href="#" target="_blank" download class="pdf-tool-btn" title="Stáhnout nebo otevřít soubor" style="text-decoration: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span style="font-size: 0.78rem;">Otevřít / Stáhnout</span>
+                </a>
+                <button class="close-modal-btn" onclick="closePdfModal()" title="Zavřít">✕</button>
+            </div>
         </div>
-        <div class="modal-body" style="padding: 0; flex: 1; overflow: hidden;">
-            <iframe id="pdfFrame" src="" style="width:100%; height:100%; border:none;"></iframe>
+
+        <div class="pdf-toolbar" id="pdfToolbar">
+            <div class="pdf-toolbar-group">
+                <button class="pdf-tool-btn" id="pdfPrevBtn" onclick="changePdfPage(-1)" title="Předchozí strana">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="pdf-page-indicator">Strana <span id="pdfCurrentPage">1</span> / <span id="pdfTotalPages">1</span></span>
+                <button class="pdf-tool-btn" id="pdfNextBtn" onclick="changePdfPage(1)" title="Další strana">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
+
+            <div class="pdf-toolbar-group">
+                <button class="pdf-tool-btn" onclick="zoomPdf(-0.2)" title="Zmenšit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <span class="pdf-zoom-indicator" id="pdfZoomDisplay" onclick="resetPdfZoom()" style="cursor: pointer;" title="Klikněte pro obnovení velikosti">100%</span>
+                <button class="pdf-tool-btn" onclick="zoomPdf(0.2)" title="Zvětšit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <button class="pdf-tool-btn" onclick="fitPdfWidth()" title="Přizpůsobit šířce okna">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                </button>
+                <button class="pdf-tool-btn" onclick="rotatePdf()" title="Otočit o 90°">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </button>
+            </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn-primary" onclick="closePdfModal()">Zavřít</button>
+
+        <div class="pdf-scroll-area" id="pdfScrollArea">
+            <div class="pdf-spinner-box" id="pdfLoadingBox">
+                <div class="pdf-spinner"></div>
+                <div style="font-weight: 600; font-size: 0.95rem;">Načítání návodky do prohlížeče...</div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">Není potřeba externí PDF čtečka</div>
+            </div>
+
+            <div class="pdf-error-box" id="pdfErrorBox">
+                <div style="font-size: 1.5rem;">⚠️</div>
+                <div style="font-weight: 700; font-size: 1rem;">Návodku nelze vykreslit přímo v aplikaci</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;" id="pdfErrorMessage">Soubor byl pravděpodobně přesunut nebo je v jiném formátu.</div>
+                <a id="pdfFallbackLink" href="#" target="_blank" download class="btn-primary" style="margin-top: 0.5rem; text-decoration: none;">Otevřít soubor přímo</a>
+            </div>
+
+            <canvas id="pdfCanvas" style="display: none;"></canvas>
+            <img id="pdfImageViewer" alt="Návodka grafika">
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="numberScannerModal">
+    <div class="modal-card">
+        <div class="scanner-header">
+            <div class="scanner-title">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span>Skener čísla formy</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <button type="button" id="scannerTorchBtn" class="top-icon-btn" onclick="toggleScannerTorch()" title="Zapnout/Vypnout svítilnu" style="display: none; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fbbf24;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </button>
+                <button type="button" id="scannerFlipBtn" class="top-icon-btn" onclick="switchScannerCamera()" title="Přepnout kameru" style="display: none; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #f8fafc;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                    </svg>
+                </button>
+                <button type="button" class="close-modal-btn" onclick="closeNumberScanner()" style="color: #cbd5e1;" title="Zavřít skener">✕</button>
+            </div>
+        </div>
+
+        <div class="scanner-viewport-wrapper" id="scannerViewport">
+            <video id="scannerVideo" playsinline autoplay muted></video>
+            
+            <div class="scanner-overlay-mask">
+                <div class="scanner-guide-text">Namiřte rámeček na číslo formy</div>
+                <div class="scanner-reticle" id="scannerReticle">
+                    <div class="reticle-corner tl"></div>
+                    <div class="reticle-corner tr"></div>
+                    <div class="reticle-corner bl"></div>
+                    <div class="reticle-corner br"></div>
+                    <div class="scanner-laser-line"></div>
+                </div>
+            </div>
+
+            <div class="scanner-controls-bottom" id="scannerControlsBottom">
+                <div class="scanner-status-pill" id="scannerStatusPill">
+                    <span class="scanner-status-dot"></span>
+                    <span id="scannerStatusText">Hledám číslo štítku...</span>
+                </div>
+                <button type="button" class="scanner-snap-btn" onclick="captureTagPhotoNow()" title="Okamžité vyfocení a rozpoznání čísla">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                    <span>Vyfotit a rozpoznat</span>
+                </button>
+            </div>
+
+            <!-- Slide-up card for detected mold -->
+            <div class="scanner-result-drawer" id="scannerResultDrawer">
+                <div class="scanner-result-badge">✓ Forma nalezena</div>
+                <div class="scanner-mold-num">
+                    <span>Forma:</span>
+                    <span id="scannerResMoldId" style="color: #38bdf8;">—</span>
+                </div>
+                <div class="scanner-mold-details">
+                    <div class="scanner-detail-row">
+                        <span class="scanner-detail-label">Výroba:</span>
+                        <span class="scanner-detail-value" id="scannerResProduct">—</span>
+                    </div>
+                    <div class="scanner-detail-row">
+                        <span class="scanner-detail-label">Pozice:</span>
+                        <span class="scanner-detail-value" id="scannerResPosition" style="color: #4ade80;">—</span>
+                    </div>
+                    <div class="scanner-detail-row">
+                        <span class="scanner-detail-label">Zákazník:</span>
+                        <span class="scanner-detail-value" id="scannerResCustomer">—</span>
+                    </div>
+                </div>
+                <div class="scanner-actions-row">
+                    <button type="button" class="btn-primary" id="scannerOpenCardBtn" onclick="scannerConfirmOpen()" style="padding: 0.75rem 1rem; font-weight: 700; background: #22c55e; color: #052e16;">Otevřít kartu formy</button>
+                    <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #334155; color: #f8fafc;">Znovu skenovat</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -2433,9 +3461,19 @@
         return `Návodka ${fallbackIndex}`;
     }
 
-    function triggerHapticFeedback(pattern = [15]) {
+    const haptic = {
+        selection: () => triggerHapticFeedback([18]),
+        impact: () => triggerHapticFeedback([25]),
+        threshold: () => triggerHapticFeedback([32]),
+        success: () => triggerHapticFeedback([20, 45, 25]),
+        cameraSuccess: () => triggerHapticFeedback([25, 50, 30]),
+        warning: () => triggerHapticFeedback([35, 55, 30]),
+        error: () => triggerHapticFeedback([50, 65, 40])
+    };
+
+    function triggerHapticFeedback(pattern = [20]) {
         refreshUserSessionActivity();
-        if ('vibrate' in navigator) {
+        if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
             try { navigator.vibrate(pattern); } catch (e) {}
         }
     }
@@ -2460,8 +3498,10 @@
         toast.textContent = message;
         if (isError) {
             toast.classList.add('toast-error');
+            haptic.error();
         } else {
             toast.classList.remove('toast-error');
+            haptic.success();
         }
         
         if (toastTimer) clearTimeout(toastTimer);
@@ -2521,7 +3561,7 @@
 
     let customConfirmCallback = null;
     function showCustomConfirm(title, message, confirmButtonText = "Smazat", onConfirm) {
-        triggerHapticFeedback([15]);
+        haptic.warning();
         document.getElementById('customConfirmTitle').textContent = title;
         document.getElementById('customConfirmMessage').textContent = message;
         const yesBtn = document.getElementById('customConfirmYesBtn');
@@ -2716,6 +3756,22 @@
         }
     }
 
+    function getDeviceBadgeHtml(deviceType) {
+        const devStr = String(deviceType || '').toLowerCase();
+        let deviceSvg = '';
+        let deviceLabel = 'PC';
+
+        if (devStr.includes('smart') || devStr.includes('mobil') || devStr.includes('mobile') || devStr.includes('phone') || devStr.includes('android') || devStr.includes('iphone')) {
+            deviceLabel = 'Mobile';
+            deviceSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; color: var(--text-muted); display: inline-block; vertical-align: -2px; margin-right: 3px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`;
+        } else {
+            deviceLabel = 'PC';
+            deviceSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; color: var(--text-muted); display: inline-block; vertical-align: -2px; margin-right: 3px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12.01" y2="21"></line></svg>`;
+        }
+
+        return `<span style="display: inline-flex; align-items: center; color: var(--text-muted, #64748b); font-size: 0.72rem;">${deviceSvg} <span>${deviceLabel}</span></span>`;
+    }
+
     async function renderOnlineUsers() {
         const container = document.getElementById('onlineUsersContainer');
         if (!container) return;
@@ -2750,28 +3806,22 @@
                 }
 
                 const roleBadge = session.role === 'superuser' ? '<span style="color:#ef4444; font-weight:bold; font-size:0.7rem; margin-left:2px;">(Admin)</span>' : '';
-
-                const devStr = String(session.device_type || '').toLowerCase();
-                let deviceSvg = '';
-                let deviceLabel = 'PC';
-
-                if (devStr.includes('smart') || devStr.includes('mobil') || devStr.includes('mobile') || devStr.includes('phone') || devStr.includes('android') || devStr.includes('iphone')) {
-                    deviceLabel = 'Mobile';
-                    deviceSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; color: var(--text-muted); display: inline-block; vertical-align: -2px; margin-right: 3px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`;
-                } else {
-                    deviceLabel = 'PC';
-                    deviceSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; color: var(--text-muted); display: inline-block; vertical-align: -2px; margin-right: 3px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12.01" y2="21"></line></svg>`;
-                }
+                const deviceBadge = getDeviceBadgeHtml(session.device_type);
 
                 return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0.5rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; background: var(--card-bg, #ffffff); font-size: 0.8rem;">
+                    <div class="online-user-item" onclick="openUserActivityModal('${escapeHtml(session.user_name)}', '${escapeHtml(session.device_type || '')}', '${session.last_seen}')" title="Klikněte pro zobrazení podrobné aktivity uživatele">
                         <div>
-                            <strong style="color: var(--text-main, #0f172a);">${escapeHtml(session.user_name)}</strong> ${roleBadge}
-                            <div style="font-size: 0.68rem; color: var(--text-muted, #64748b); display: flex; align-items: center; margin-top: 2px;">
-                                ${deviceSvg} <span>${deviceLabel}</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <strong style="color: var(--text-main, #0f172a);">${escapeHtml(session.user_name)}</strong> ${roleBadge}
+                            </div>
+                            <div style="margin-top: 2px;">
+                                ${deviceBadge}
                             </div>
                         </div>
-                        <div>${statusBadge}</div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;">
+                            ${statusBadge}
+                            <span style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.3);">›</span>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -2782,6 +3832,244 @@
             console.error("Chyba při načítání relací:", e);
             container.innerHTML = '<div style="font-size: 0.78rem; color: var(--error-badge);">Chyba načítání dat.</div>';
         }
+    }
+
+    let currentUserActivityData = [];
+    let currentUserActivityFilter = 'ALL';
+    let currentUserActivityTarget = '';
+
+    async function logUserAction(moldId, oldPos, newPos) {
+        if (!currentUser) return;
+        try {
+            await fetch(`${API_URL}/rest/v1/mold_logs`, {
+                method: 'POST',
+                headers: { 
+                    'apikey': API_KEY, 
+                    'Authorization': `Bearer ${API_KEY}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({
+                    mold_id: moldId || 'SYSTEM',
+                    old_position: oldPos || 'Akce',
+                    new_position: newPos || '',
+                    user_name: currentUser
+                })
+            });
+        } catch(e) {
+            console.warn("Log user action failed:", e);
+        }
+    }
+
+    async function openUserActivityModal(userName, deviceType = '', lastSeenIso = '') {
+        triggerHapticFeedback([12]);
+        closeOnlineUsersPopover();
+
+        currentUserActivityTarget = userName;
+        currentUserActivityFilter = 'ALL';
+
+        // Load logs in real-time first so there is zero flickering or counter resetting
+        let logs = [];
+        try {
+            const { data: logsExact, error: errExact } = await supabaseClient
+                .from('mold_logs')
+                .select('*')
+                .eq('user_name', userName)
+                .order('created_at', { ascending: false })
+                .limit(250);
+
+            if (!errExact && logsExact) {
+                logs = logsExact;
+            }
+
+            if (logs.length === 0) {
+                const { data: logsIlike } = await supabaseClient
+                    .from('mold_logs')
+                    .select('*')
+                    .ilike('user_name', `%${userName}%`)
+                    .order('created_at', { ascending: false })
+                    .limit(250);
+                if (logsIlike && logsIlike.length > 0) {
+                    logs = logsIlike;
+                }
+            }
+        } catch(err) {
+            console.error("Chyba při načítání aktivity uživatele:", err);
+        }
+
+        currentUserActivityData = logs || [];
+
+        // Compute metrics directly with real data
+        let totalCount = currentUserActivityData.length;
+        let moveCount = 0;
+        let searchCount = 0;
+        let noteCount = 0;
+
+        currentUserActivityData.forEach(item => {
+            const moldIdStr = String(item.mold_id || '').toUpperCase();
+            const oldPosStr = String(item.old_position || '').toLowerCase();
+            const newPosStr = String(item.new_position || '').toLowerCase();
+
+            if (moldIdStr === 'HLEDÁNÍ' || oldPosStr.includes('hled') || newPosStr.includes('hledal')) {
+                searchCount++;
+            } else if (oldPosStr.includes('koment') || oldPosStr.includes('foto') || newPosStr.includes('poznámk') || newPosStr.includes('fotograf')) {
+                noteCount++;
+            } else if (oldPosStr.includes('pozic') || newPosStr.includes('pozic') || oldPosStr.includes('stav') || newPosStr.includes('stav') || oldPosStr === 'položka vytvořena' || oldPosStr === 'koš') {
+                moveCount++;
+            }
+        });
+
+        // Set all modal header and metric DOM values synchronously to final values
+        const titleEl = document.getElementById('userActivityTitle');
+        const subtitleEl = document.getElementById('userActivitySubtitle');
+        if (titleEl) titleEl.textContent = `Aktivita: ${userName}`;
+        
+        let subText = '';
+        if (deviceType) subText += getDeviceBadgeHtml(deviceType);
+        if (lastSeenIso) {
+            const dateStr = new Date(lastSeenIso).toLocaleString('cs-CZ');
+            if (subText) subText += `<span style="margin: 0 4px; opacity: 0.4;">•</span>`;
+            subText += `<span>Poslední spojení: ${escapeHtml(dateStr)}</span>`;
+        }
+        if (subtitleEl) subtitleEl.innerHTML = subText;
+
+        const filterBar = document.getElementById('uactFilterBar');
+        if (filterBar) {
+            filterBar.querySelectorAll('.filter-chip').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === 0);
+            });
+        }
+
+        const uTotal = document.getElementById('uactTotal');
+        const uMoves = document.getElementById('uactMoves');
+        const uSearches = document.getElementById('uactSearches');
+        const uNotes = document.getElementById('uactNotes');
+        if (uTotal) uTotal.textContent = totalCount;
+        if (uMoves) uMoves.textContent = moveCount;
+        if (uSearches) uSearches.textContent = searchCount;
+        if (uNotes) uNotes.textContent = noteCount;
+
+        const listEl = document.getElementById('userActivityList');
+        if (listEl) {
+            listEl.style.opacity = '1';
+        }
+
+        renderUserActivityList();
+
+        // Show modal once content and metrics are 100% prepared
+        showModalAnimated('userActivityModal');
+    }
+
+    function closeUserActivityModal() {
+        hideModalAnimated('userActivityModal');
+    }
+
+    function filterUserActivityType(filterType, btnEl) {
+        triggerHapticFeedback([12]);
+        currentUserActivityFilter = filterType;
+
+        const filterBar = document.getElementById('uactFilterBar');
+        if (filterBar) {
+            filterBar.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        }
+        if (btnEl) btnEl.classList.add('active');
+
+        renderUserActivityList();
+    }
+
+    function renderUserActivityList() {
+        const listEl = document.getElementById('userActivityList');
+        if (!listEl) return;
+
+        let filtered = currentUserActivityData;
+
+        if (currentUserActivityFilter !== 'ALL') {
+            filtered = filtered.filter(item => {
+                const moldIdStr = String(item.mold_id || '').toUpperCase();
+                const oldPosStr = String(item.old_position || '').toLowerCase();
+                const newPosStr = String(item.new_position || '').toLowerCase();
+
+                if (currentUserActivityFilter === 'SEARCH') {
+                    return moldIdStr === 'HLEDÁNÍ' || oldPosStr.includes('hled') || newPosStr.includes('hledal');
+                } else if (currentUserActivityFilter === 'MOVE') {
+                    return oldPosStr.includes('pozic') || newPosStr.includes('pozic') || oldPosStr.includes('stav') || newPosStr.includes('stav') || oldPosStr === 'položka vytvořena' || oldPosStr === 'koš';
+                } else if (currentUserActivityFilter === 'NOTE') {
+                    return oldPosStr.includes('koment') || oldPosStr.includes('foto') || newPosStr.includes('poznámk') || newPosStr.includes('fotograf');
+                } else if (currentUserActivityFilter === 'VIEW') {
+                    return oldPosStr.includes('prohlížení') || oldPosStr.includes('návodka') || oldPosStr.includes('skener') || oldPosStr.includes('detail formy') || newPosStr.includes('návodka') || newPosStr.includes('skener');
+                }
+                return true;
+            });
+        }
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = '<div class="no-data" style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Žádné záznamy v této kategorii.</div>';
+            return;
+        }
+
+        listEl.innerHTML = filtered.map(log => {
+            const moldIdStr = String(log.mold_id || '').trim();
+            const oldPos = log.old_position || '';
+            const newPos = log.new_position || '';
+            const dateStr = new Date(log.created_at).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            let iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>';
+            let title = '';
+            let detail = '';
+
+            const isSearch = moldIdStr.toUpperCase() === 'HLEDÁNÍ' || oldPos.toLowerCase().includes('hled') || newPos.toLowerCase().includes('hledal');
+            const isScanner = oldPos.toLowerCase().includes('skener') || newPos.toLowerCase().includes('skener');
+            const isNavodka = oldPos.toLowerCase().includes('návodka') || newPos.toLowerCase().includes('návodka');
+            const isDetail = oldPos.toLowerCase().includes('detail formy');
+            const isNote = oldPos.toLowerCase().includes('koment') || newPos.toLowerCase().includes('poznámk');
+            const isPhoto = oldPos.toLowerCase().includes('foto') || newPos.toLowerCase().includes('foto');
+
+            if (isSearch) {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+                title = 'Vyhledávání v aplikaci';
+                detail = newPos || oldPos;
+            } else if (isScanner) {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                title = `Skener čárových kódů: ${moldIdStr}`;
+                detail = newPos || 'Skenování fotoaparátem';
+            } else if (isNavodka) {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>';
+                title = `Návodka: ${moldIdStr}`;
+                detail = newPos;
+            } else if (isDetail) {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                title = `Detail formy: ${moldIdStr}`;
+                detail = 'Zobrazení podrobností a fotografií formy';
+            } else if (isNote) {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="13" y2="13"></line></svg>';
+                title = `Poznámka k formě: ${moldIdStr}`;
+                detail = newPos;
+            } else if (isPhoto) {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+                title = `Fotografie formy: ${moldIdStr}`;
+                detail = newPos;
+            } else {
+                iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
+                title = `Forma: ${moldIdStr}`;
+                detail = `${escapeHtml(oldPos)} → <strong>${escapeHtml(newPos)}</strong>`;
+            }
+
+            return `
+                <div style="display: flex; gap: 0.65rem; align-items: flex-start; padding: 0.55rem 0.7rem; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; font-size: 0.8rem;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--input-bg, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); color: var(--text-main, #0f172a); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;">
+                        ${iconSvg}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 2px;">
+                            <span style="font-weight: 600; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(title)}</span>
+                            <span style="font-size: 0.68rem; color: var(--text-muted); white-space: nowrap;">${dateStr}</span>
+                        </div>
+                        <div style="font-size: 0.76rem; color: var(--text-main); word-break: break-word; line-height: 1.35;">
+                            ${detail}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     function toggleExportButtonSelect(element, mode, format) {
@@ -2990,48 +4278,353 @@
         return trimmed.replace(/\s+([zcmbzCMBHhčČ])(?!\.)$/i, ' $1.');
     }
 
+    let isRowSwipeInProgress = false;
+
     function initSwipeNavigation() {
         const swipeArea = document.getElementById('swipeContentArea');
         if (!swipeArea) return;
 
         let startX = 0;
         let startY = 0;
+        let isMouseDown = false;
+        let mouseStartX = 0;
+        let mouseStartY = 0;
+        let wheelTabLock = false;
         const tabsOrder = ['search', 'database', 'dashboard'];
 
+        const performTabSwitch = (diffX) => {
+            const currentActive = tabsOrder.find(t => document.getElementById(`tab-${t}`)?.classList.contains('active'));
+            const currentIndex = tabsOrder.indexOf(currentActive);
+
+            if (diffX < 0) {
+                if (currentIndex < tabsOrder.length - 1) {
+                    triggerHapticFeedback([12]);
+                    switchTab(tabsOrder[currentIndex + 1]);
+                }
+            } else {
+                if (currentIndex > 0) {
+                    triggerHapticFeedback([12]);
+                    switchTab(tabsOrder[currentIndex - 1]);
+                }
+            }
+        };
+
+        // Touch events (Mobile & Touchscreens)
         swipeArea.addEventListener('touchstart', (e) => {
-            if (e.target.closest('input, textarea, select, .customer-filters')) return;
+            if (isRowSwipeInProgress) return;
+            if (e.target.closest('input, textarea, select, .customer-filters, .position-filters-scroll, .modal-card, .accordion-floating-layer, .pdf-scroll-area, .scanner-viewport-wrapper')) return;
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
         }, { passive: true });
 
         swipeArea.addEventListener('touchend', (e) => {
-            if (!startX) return;
+            if (!startX || isRowSwipeInProgress) return;
             const endX = e.changedTouches[0].clientX;
             const endY = e.changedTouches[0].clientY;
 
             const diffX = endX - startX;
             const diffY = endY - startY;
 
-            if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
-                const currentActive = tabsOrder.find(t => document.getElementById(`tab-${t}`).classList.contains('active'));
-                const currentIndex = tabsOrder.indexOf(currentActive);
+            if (Math.abs(diffX) > 55 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
+                performTabSwitch(diffX);
+            }
 
-                if (diffX < 0) {
-                    if (currentIndex < tabsOrder.length - 1) {
-                        triggerHapticFeedback([12]);
-                        switchTab(tabsOrder[currentIndex + 1]);
+            startX = 0;
+            startY = 0;
+        }, { passive: true });
+
+        // Mouse Drag events (PC Desktop)
+        swipeArea.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || isRowSwipeInProgress) return;
+            if (e.target.closest('input, textarea, select, .customer-filters, .position-filters-scroll, .modal-card, .accordion-floating-layer, .pdf-scroll-area, .scanner-viewport-wrapper, button, a')) return;
+            isMouseDown = true;
+            mouseStartX = e.clientX;
+            mouseStartY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (!isMouseDown) return;
+            isMouseDown = false;
+            if (isRowSwipeInProgress) return;
+
+            const diffX = e.clientX - mouseStartX;
+            const diffY = e.clientY - mouseStartY;
+
+            if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
+                performTabSwitch(diffX);
+            }
+        });
+
+        // Trackpad / Wheel Horizontal Swipe (PC Laptop / Desktop Trackpads)
+        swipeArea.addEventListener('wheel', (e) => {
+            if (wheelTabLock || isRowSwipeInProgress) return;
+            if (e.target.closest('.position-filters-scroll, .customer-filters, .modal-body, .table-container, input, textarea, select')) return;
+
+            if (Math.abs(e.deltaX) > 35 && Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.8) {
+                wheelTabLock = true;
+                performTabSwitch(-e.deltaX);
+                setTimeout(() => { wheelTabLock = false; }, 450);
+            }
+        }, { passive: true });
+    }
+
+    function initTableRowsSwipeGestures() {
+        let startX = 0;
+        let startY = 0;
+        let currentDiffX = 0;
+        let swipingTr = null;
+        let candidateTr = null;
+        let isHoldArmed = false;
+        let holdTimer = null;
+        let lastSwipeTimestamp = 0;
+        let isThresholdReachedHapticSent = false;
+
+        const backdrop = document.getElementById('gmailSwipeBackdrop');
+        const actionLeft = document.getElementById('swipeActionLeft');
+        const actionRight = document.getElementById('swipeActionRight');
+
+        const isInteractiveTarget = (target) => {
+            return Boolean(target.closest('button, .toggle-accordion-btn, .tag-customer, .badge-position, .comment-btn, .edit-btn, .photo-upload-card, .accordion-thumb, .navodka-badge-item, .modal-card, input, select, textarea, a'));
+        };
+
+        const handlePressStart = (clientX, clientY, target, isMouse = false) => {
+            if (isInteractiveTarget(target)) return;
+            const tr = target.closest('tr[id^="accordion-trigger-"]');
+            if (!tr) return;
+
+            if (tr.classList.contains('cascade-item')) {
+                tr.classList.remove('cascade-item');
+                tr.style.animation = '';
+                tr.style.animationDelay = '';
+            }
+
+            startX = clientX;
+            startY = clientY;
+            currentDiffX = 0;
+            candidateTr = tr;
+            isHoldArmed = false;
+
+            if (holdTimer) clearTimeout(holdTimer);
+            holdTimer = setTimeout(() => {
+                if (candidateTr) {
+                    isHoldArmed = true;
+                    swipingTr = candidateTr;
+                    swipingTr.classList.add('swipe-armed');
+                    haptic.impact();
+                }
+            }, isMouse ? 140 : 180);
+        };
+
+        const handlePressMove = (clientX, clientY, e) => {
+            if (!startX && !startY) return;
+            if (!candidateTr && !swipingTr) return;
+
+            const diffX = clientX - startX;
+            const diffY = clientY - startY;
+
+            if (!isHoldArmed && candidateTr) {
+                // If finger moves before hold delay completes (~180ms), cancel tile hold timer
+                // so the gesture flows into tab swipe or vertical page scroll
+                if (Math.hypot(diffX, diffY) > 8) {
+                    if (holdTimer) {
+                        clearTimeout(holdTimer);
+                        holdTimer = null;
                     }
-                } else {
-                    if (currentIndex > 0) {
-                        triggerHapticFeedback([12]);
-                        switchTab(tabsOrder[currentIndex - 1]);
+                    candidateTr = null;
+                    return;
+                }
+            }
+
+            if (isHoldArmed && swipingTr) {
+                if (e && e.cancelable) e.preventDefault();
+                currentDiffX = diffX;
+
+                if (Math.abs(diffX) > 4) {
+                    isRowSwipeInProgress = true;
+                    swipingTr.classList.add('swipe-dragging');
+                    const clampedX = Math.max(-130, Math.min(130, diffX * 0.82));
+                    
+                    // Slide the tile's cells horizontally over the under-layer track
+                    const tds = swipingTr.querySelectorAll('td');
+                    tds.forEach(td => {
+                        td.style.transform = `translateX(${clampedX}px)`;
+                        td.style.transition = 'none';
+                    });
+
+                    if (backdrop) {
+                        const container = swipingTr.closest('.table-container');
+                        if (container && backdrop.parentElement !== container) {
+                            container.appendChild(backdrop);
+                        }
+                        backdrop.style.top = `${swipingTr.offsetTop}px`;
+                        backdrop.style.left = `0px`;
+                        backdrop.style.width = `100%`;
+                        backdrop.style.height = `${swipingTr.offsetHeight}px`;
+                        backdrop.style.display = 'block';
+
+                        const SWIPE_ACTION_THRESHOLD = 75;
+                        const absDiff = Math.abs(diffX);
+                        const isArmedByDistance = absDiff >= SWIPE_ACTION_THRESHOLD;
+
+                        if (isArmedByDistance && !isThresholdReachedHapticSent) {
+                            haptic.threshold();
+                            isThresholdReachedHapticSent = true;
+                        } else if (!isArmedByDistance && isThresholdReachedHapticSent) {
+                            isThresholdReachedHapticSent = false;
+                        }
+
+                        if (diffX > 0) {
+                            // Swipe Right -> The sliding tile uncovers Poznámka / Comment on the left floor
+                            if (actionLeft) {
+                                actionLeft.style.display = 'flex';
+                                const progress = Math.min(1, Math.max(0, diffX / SWIPE_ACTION_THRESHOLD));
+                                actionLeft.style.opacity = (0.4 + progress * 0.6).toString();
+                                const pill = actionLeft.querySelector('.gmail-swipe-icon-pill');
+                                if (pill) pill.classList.toggle('armed-trigger', isArmedByDistance);
+                            }
+                            if (actionRight) {
+                                actionRight.style.opacity = '0';
+                                actionRight.style.display = 'none';
+                            }
+                        } else {
+                            // Swipe Left -> The sliding tile uncovers Upravit / Gear on the right floor
+                            if (actionRight) {
+                                actionRight.style.display = 'flex';
+                                const progress = Math.min(1, Math.max(0, absDiff / SWIPE_ACTION_THRESHOLD));
+                                actionRight.style.opacity = (0.4 + progress * 0.6).toString();
+                                const pill = actionRight.querySelector('.gmail-swipe-icon-pill');
+                                if (pill) pill.classList.toggle('armed-trigger', isArmedByDistance);
+                            }
+                            if (actionLeft) {
+                                actionLeft.style.opacity = '0';
+                                actionLeft.style.display = 'none';
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        const handlePressEnd = () => {
+            if (holdTimer) {
+                clearTimeout(holdTimer);
+                holdTimer = null;
+            }
+
+            if (swipingTr) {
+                const targetTr = swipingTr;
+                const tds = targetTr.querySelectorAll('td');
+                tds.forEach(td => {
+                    td.style.transition = 'transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.24s ease';
+                    td.style.transform = 'translateX(0px)';
+                });
+
+                const triggeredDiffX = currentDiffX;
+                const wasSwiping = isRowSwipeInProgress && Math.abs(triggeredDiffX) >= 75;
+
+                setTimeout(() => {
+                    tds.forEach(td => {
+                        td.style.transform = '';
+                        td.style.transition = '';
+                    });
+                    targetTr.classList.remove('swipe-armed', 'swipe-dragging');
+                    if (backdrop) {
+                        backdrop.style.display = 'none';
+                    }
+                    if (actionLeft) {
+                        actionLeft.style.opacity = '0';
+                        actionLeft.style.display = 'none';
+                        actionLeft.style.transform = 'translateY(-50%)';
+                        const pillLeft = actionLeft.querySelector('.gmail-swipe-icon-pill');
+                        if (pillLeft) pillLeft.classList.remove('armed-trigger');
+                    }
+                    if (actionRight) {
+                        actionRight.style.opacity = '0';
+                        actionRight.style.display = 'none';
+                        actionRight.style.transform = 'translateY(-50%)';
+                        const pillRight = actionRight.querySelector('.gmail-swipe-icon-pill');
+                        if (pillRight) pillRight.classList.remove('armed-trigger');
+                    }
+                }, 240);
+
+                if (wasSwiping) {
+                    lastSwipeTimestamp = Date.now();
+                    const moldId = targetTr.getAttribute('data-mold-id');
+                    if (moldId) {
+                        const item = rawDatabase.find(i => String(i[0]) === String(moldId));
+                        if (triggeredDiffX > 0) {
+                            // Swipe Right -> Poznámka / Comment
+                            haptic.success();
+                            openCommentModal(moldId);
+                        } else {
+                            // Swipe Left -> Upravit / Gear / Full edit
+                            haptic.success();
+                            if (item) {
+                                openFullEdit(item[0], item[1], item[3] || '', item[5] || '');
+                            } else {
+                                openFullEdit(moldId, '', '', '');
+                            }
+                        }
                     }
                 }
             }
 
             startX = 0;
             startY = 0;
+            currentDiffX = 0;
+            swipingTr = null;
+            candidateTr = null;
+            isHoldArmed = false;
+            setTimeout(() => { isRowSwipeInProgress = false; }, 90);
+        };
+
+        // Touch events (Mobile)
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return;
+            handlePressStart(e.touches[0].clientX, e.touches[0].clientY, e.target, false);
         }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length !== 1) return;
+            handlePressMove(e.touches[0].clientX, e.touches[0].clientY, e);
+        }, { passive: false });
+
+        document.addEventListener('touchend', handlePressEnd, { passive: true });
+        document.addEventListener('touchcancel', handlePressEnd, { passive: true });
+
+        // Mouse events (PC support)
+        document.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only left click
+            handlePressStart(e.clientX, e.clientY, e.target, true);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (e.buttons === 1 || isHoldArmed || swipingTr) {
+                handlePressMove(e.clientX, e.clientY, e);
+            }
+        });
+
+        document.addEventListener('mouseup', handlePressEnd);
+
+        // Prevent accidental clicks after swiping
+        document.addEventListener('click', (e) => {
+            if (isRowSwipeInProgress || (Date.now() - lastSwipeTimestamp < 300)) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }, true);
+
+        // Prevent native text selection / image dragging during swipe
+        document.addEventListener('dragstart', (e) => {
+            if (candidateTr || swipingTr || isHoldArmed) {
+                e.preventDefault();
+            }
+        });
+        document.addEventListener('selectstart', (e) => {
+            if (candidateTr || swipingTr || isHoldArmed) {
+                e.preventDefault();
+            }
+        });
     }
 
     function initSmartHaptics() {
@@ -3056,9 +4649,15 @@
         document.addEventListener('pointerdown', (e) => {
             const target = e.target.closest('button, .tab-btn, .filter-chip, .dash-card, .badge-position, .tag-customer, .add-customer-chip, .top-icon-btn, .auth-btn, .superuser-badge-btn, .comment-item, .toggle-accordion-btn, .edit-btn, .comment-btn, .floating-corner-btn, .floating-corner-btn-left, .mold-clickable-id');
             if (target) {
-                target.dataset.pressTime = Date.now();
-                target.classList.add('is-touched');
-                triggerHapticFeedback([12]);
+                if (target.matches('.tab-btn, .filter-chip, .badge-position, .tag-customer')) {
+                    haptic.selection();
+                } else {
+                    haptic.impact();
+                }
+                if (!target.classList.contains('toggle-accordion-btn')) {
+                    target.dataset.pressTime = Date.now();
+                    target.classList.add('is-touched');
+                }
             }
         }, { passive: true });
 
@@ -3073,7 +4672,9 @@
         updateAuthUI();
         renderCustomColorDropdownOptions();
         initSwipeNavigation();
+        initTableRowsSwipeGestures();
         initSmartHaptics();
+        initCustomerFiltersScrolling();
 
         pingUserPresence();
         updateOnlineBadge();
@@ -3707,6 +5308,58 @@
         } catch (e) { console.error("Error fetching customers:", e); }
     }
 
+    let isCustomerDragging = false;
+    let activeDragContainer = null;
+    let customerDragStartX = 0;
+    let customerDragScrollLeft = 0;
+    let customerDragMoved = false;
+
+    function initCustomerFiltersScrolling() {
+        document.querySelectorAll('.customer-filters').forEach(container => {
+            if (container.dataset.dragInitialized) return;
+            container.dataset.dragInitialized = "true";
+
+            container.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                isCustomerDragging = true;
+                activeDragContainer = container;
+                customerDragMoved = false;
+                customerDragStartX = e.pageX;
+                customerDragScrollLeft = container.scrollLeft;
+            });
+
+            container.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    container.scrollLeft += e.deltaY;
+                }
+            }, { passive: true });
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isCustomerDragging || !activeDragContainer) return;
+            const walk = e.pageX - customerDragStartX;
+            if (Math.abs(walk) > 4) {
+                customerDragMoved = true;
+                activeDragContainer.classList.add('is-dragging');
+            }
+            activeDragContainer.scrollLeft = customerDragScrollLeft - walk;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isCustomerDragging) return;
+            isCustomerDragging = false;
+            if (activeDragContainer) {
+                activeDragContainer.classList.remove('is-dragging');
+                activeDragContainer = null;
+            }
+            if (customerDragMoved) {
+                setTimeout(() => {
+                    customerDragMoved = false;
+                }, 60);
+            }
+        });
+    }
+
     function renderCustomerFilters() {
         const container = document.getElementById('customerFilters');
         if (!container) return;
@@ -3740,9 +5393,11 @@
         html += `<button class="add-customer-chip" tabindex="0" onclick="openAddCustomerModal()" title="Přidat nového zákazníka">+</button>`;
         container.innerHTML = html;
         container.scrollLeft = savedScrollLeft;
+        initCustomerFiltersScrolling();
     }
 
     function handleTagRightClick(e, customerName) {
+        if (customerDragMoved) return;
         e.preventDefault();
         if (BASE_SYSTEM_CUSTOMERS.includes(customerName)) return;
         
@@ -3931,6 +5586,7 @@
 
 
     function openAddCustomerModal() {
+        if (customerDragMoved) return;
         if (!checkAuthOrPrompt()) return;
         const filtersContainer = document.querySelector('.customer-filters');
         const currentScrollLeft = filtersContainer ? filtersContainer.scrollLeft : 0;
@@ -4041,6 +5697,9 @@
 
         if (nextContent) {
             nextContent.classList.add('active');
+            if (tabName === 'database') {
+                // Customer filters use touch/mouse scroll
+            }
             setTimeout(() => { isTabTransitioning = false; }, 220);
         }
     }
@@ -4135,6 +5794,8 @@
             });
             expandedMoldsMap[rowKey] = true;
             if (btn) btn.classList.add('expanded');
+
+            logUserAction(moldId, 'Detail formy', 'Otevřen detail formy');
 
             const item = rawDatabase.find(i => String(i[0]) === String(moldId));
             
@@ -4423,16 +6084,680 @@
 
     function closePhotoModal() { hideModalAnimated('photoModal'); }
 
-    function openPdfModal(pdfUrl, moldId) {
+    // ==========================================
+    // IN-APP NÁVODKY / PDF VIEWER (PDF.JS)
+    // ==========================================
+    if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    let currentPdfDoc = null;
+    let currentPdfPage = 1;
+    let totalPdfPages = 1;
+    let pdfZoomScale = 1.0;
+    let pdfRotationAngle = 0;
+    let isRenderingPdfPage = false;
+    let pendingPdfPageNum = null;
+    let currentPdfUrl = '';
+
+    function isImageFile(url) {
+        if (!url) return false;
+        return /\.(jpe?g|png|webp|gif|bmp|svg)($|\?)/i.test(url);
+    }
+
+    async function openPdfModal(fileUrl, moldIdInfo) {
         triggerHapticFeedback([12]);
-        document.getElementById('pdfModalTitle').textContent = `Návodka — Forma ${moldId}`;
-        document.getElementById('pdfFrame').src = pdfUrl;
+        currentPdfUrl = fileUrl || '';
+        
+        const titleEl = document.getElementById('pdfModalTitle');
+        if (titleEl) {
+            titleEl.textContent = `Návodka — Forma ${moldIdInfo || ''}`;
+        }
+
+        logUserAction(moldIdInfo ? String(moldIdInfo).split('—')[0].trim() : 'NÁVODKA', 'Návodka', `Zobrazena návodka: ${moldIdInfo || fileUrl}`);
+
+        const downloadLink = document.getElementById('pdfDownloadLink');
+        if (downloadLink) {
+            downloadLink.href = currentPdfUrl;
+        }
+
+        const fallbackLink = document.getElementById('pdfFallbackLink');
+        if (fallbackLink) {
+            fallbackLink.href = currentPdfUrl;
+        }
+
+        const loadingBox = document.getElementById('pdfLoadingBox');
+        const errorBox = document.getElementById('pdfErrorBox');
+        const canvas = document.getElementById('pdfCanvas');
+        const imgViewer = document.getElementById('pdfImageViewer');
+        const toolbar = document.getElementById('pdfToolbar');
+
+        if (loadingBox) loadingBox.style.display = 'flex';
+        if (errorBox) errorBox.style.display = 'none';
+        if (canvas) canvas.style.display = 'none';
+        if (imgViewer) imgViewer.style.display = 'none';
+
+        currentPdfDoc = null;
+        currentPdfPage = 1;
+        totalPdfPages = 1;
+        pdfZoomScale = 1.0;
+        pdfRotationAngle = 0;
+
         showModalAnimated('pdfModal');
+
+        // Check if the file is an image
+        if (isImageFile(currentPdfUrl)) {
+            if (loadingBox) loadingBox.style.display = 'none';
+            if (toolbar) toolbar.style.display = 'none';
+            if (imgViewer) {
+                imgViewer.src = currentPdfUrl;
+                imgViewer.style.display = 'block';
+            }
+            return;
+        }
+
+        if (toolbar) toolbar.style.display = 'flex';
+
+        // Load PDF via PDF.js
+        try {
+            if (!window.pdfjsLib) {
+                throw new Error("PDF.js knihovna není načtena.");
+            }
+            const loadingTask = window.pdfjsLib.getDocument({
+                url: currentPdfUrl,
+                cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+                cMapPacked: true,
+                withCredentials: false
+            });
+
+            currentPdfDoc = await loadingTask.promise;
+            totalPdfPages = currentPdfDoc.numPages;
+
+            const totalEl = document.getElementById('pdfTotalPages');
+            if (totalEl) totalEl.textContent = totalPdfPages;
+
+            if (loadingBox) loadingBox.style.display = 'none';
+            if (canvas) canvas.style.display = 'block';
+
+            // Automatically fit width
+            fitPdfWidth();
+        } catch (err) {
+            console.error("Chyba při načítání PDF:", err);
+            if (loadingBox) loadingBox.style.display = 'none';
+            if (errorBox) errorBox.style.display = 'flex';
+            const msgEl = document.getElementById('pdfErrorMessage');
+            if (msgEl) msgEl.textContent = (err && err.message) ? err.message : "Nelze zobrazit PDF přímo v prohlížeči.";
+        }
+    }
+
+    async function renderPdfPage(pageNum) {
+        if (!currentPdfDoc) return;
+        isRenderingPdfPage = true;
+
+        try {
+            const page = await currentPdfDoc.getPage(pageNum);
+            const canvas = document.getElementById('pdfCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const viewport = page.getViewport({ scale: pdfZoomScale, rotation: pdfRotationAngle });
+            const pixelRatio = window.devicePixelRatio || 1;
+
+            canvas.width = Math.floor(viewport.width * pixelRatio);
+            canvas.height = Math.floor(viewport.height * pixelRatio);
+            canvas.style.width = Math.floor(viewport.width) + 'px';
+            canvas.style.height = Math.floor(viewport.height) + 'px';
+
+            ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+
+            await page.render(renderContext).promise;
+            isRenderingPdfPage = false;
+
+            if (pendingPdfPageNum !== null) {
+                const nextNum = pendingPdfPageNum;
+                pendingPdfPageNum = null;
+                renderPdfPage(nextNum);
+            }
+
+            const curEl = document.getElementById('pdfCurrentPage');
+            if (curEl) curEl.textContent = pageNum;
+
+            const prevBtn = document.getElementById('pdfPrevBtn');
+            const nextBtn = document.getElementById('pdfNextBtn');
+            if (prevBtn) prevBtn.disabled = (pageNum <= 1);
+            if (nextBtn) nextBtn.disabled = (pageNum >= totalPdfPages);
+
+            const zoomDisplay = document.getElementById('pdfZoomDisplay');
+            if (zoomDisplay) zoomDisplay.textContent = `${Math.round(pdfZoomScale * 100)}%`;
+        } catch (e) {
+            isRenderingPdfPage = false;
+            console.error("Chyba renderování strany PDF:", e);
+        }
+    }
+
+    function queueRenderPdfPage(pageNum) {
+        if (isRenderingPdfPage) {
+            pendingPdfPageNum = pageNum;
+        } else {
+            renderPdfPage(pageNum);
+        }
+    }
+
+    function changePdfPage(delta) {
+        if (!currentPdfDoc) return;
+        const newPage = currentPdfPage + delta;
+        if (newPage >= 1 && newPage <= totalPdfPages) {
+            triggerHapticFeedback([10]);
+            currentPdfPage = newPage;
+            queueRenderPdfPage(currentPdfPage);
+        }
+    }
+
+    function zoomPdf(factorDelta) {
+        if (!currentPdfDoc) return;
+        triggerHapticFeedback([10]);
+        let newZoom = pdfZoomScale + factorDelta;
+        if (newZoom < 0.4) newZoom = 0.4;
+        if (newZoom > 3.0) newZoom = 3.0;
+        pdfZoomScale = newZoom;
+        queueRenderPdfPage(currentPdfPage);
+    }
+
+    function resetPdfZoom() {
+        if (!currentPdfDoc) return;
+        triggerHapticFeedback([10]);
+        fitPdfWidth();
+    }
+
+    async function fitPdfWidth() {
+        if (!currentPdfDoc) return;
+        try {
+            const page = await currentPdfDoc.getPage(currentPdfPage);
+            const scrollArea = document.getElementById('pdfScrollArea');
+            const availWidth = (scrollArea ? scrollArea.clientWidth : window.innerWidth) - 32;
+            const unscaledViewport = page.getViewport({ scale: 1.0, rotation: pdfRotationAngle });
+            const desiredScale = Math.max(0.4, Math.min(2.5, availWidth / unscaledViewport.width));
+            pdfZoomScale = desiredScale;
+            queueRenderPdfPage(currentPdfPage);
+        } catch (e) {
+            pdfZoomScale = 1.0;
+            queueRenderPdfPage(currentPdfPage);
+        }
+    }
+
+    function rotatePdf() {
+        if (!currentPdfDoc) return;
+        triggerHapticFeedback([14]);
+        pdfRotationAngle = (pdfRotationAngle + 90) % 360;
+        queueRenderPdfPage(currentPdfPage);
     }
 
     function closePdfModal() {
         hideModalAnimated('pdfModal');
-        setTimeout(() => { document.getElementById('pdfFrame').src = ''; }, 220);
+        currentPdfDoc = null;
+        currentPdfUrl = '';
+        const canvas = document.getElementById('pdfCanvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        const imgViewer = document.getElementById('pdfImageViewer');
+        if (imgViewer) imgViewer.src = '';
+    }
+
+    // ==========================================
+    // SKENER ČÍSEL FOREM (KAMERA + OCR + ČÁROVÝ KÓD)
+    // ==========================================
+    let scannerStream = null;
+    let scannerTrack = null;
+    let scannerScanInterval = null;
+    let isScannerRunning = false;
+    let isScannerProcessing = false;
+    let isScannerLocked = false;
+    let scannerTorchEnabled = false;
+    let scannerCurrentCameraIndex = 0;
+    let scannerAvailableCameras = [];
+    let tesseractWorker = null;
+    let isInitializingTesseract = false;
+    let scannerMatchedMold = null;
+    let scannerBarcodeDetector = null;
+
+    // Pleasant audio feedback
+    function playScannerAudioBeep(isSuccess = true) {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            if (isSuccess) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(780, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.18);
+            } else {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(350, ctx.currentTime);
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.2);
+            }
+        } catch (e) {}
+    }
+
+    async function getTesseractWorker() {
+        if (tesseractWorker) return tesseractWorker;
+        if (typeof Tesseract === 'undefined') return null;
+        if (isInitializingTesseract) {
+            while (isInitializingTesseract) {
+                await new Promise(r => setTimeout(r, 80));
+            }
+            return tesseractWorker;
+        }
+        isInitializingTesseract = true;
+        try {
+            const worker = await Tesseract.createWorker('eng', 1, {
+                logger: () => {}
+            });
+            await worker.setParameters({
+                tessedit_char_whitelist: '0123456789/-',
+                tessedit_pageseg_mode: '7' // Single line
+            });
+            tesseractWorker = worker;
+            return tesseractWorker;
+        } catch (err) {
+            console.warn("Chyba při inicializaci Tesseract OCR:", err);
+            return null;
+        } finally {
+            isInitializingTesseract = false;
+        }
+    }
+
+    async function openNumberScanner() {
+        triggerHapticFeedback([16]);
+        isScannerLocked = false;
+        scannerMatchedMold = null;
+        isScannerProcessing = false;
+
+        const reticle = document.getElementById('scannerReticle');
+        if (reticle) reticle.classList.remove('matched');
+
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) drawer.classList.remove('active');
+
+        const statusText = document.getElementById('scannerStatusText');
+        if (statusText) statusText.textContent = "Připojování kamery...";
+
+        showModalAnimated('numberScannerModal');
+
+        // Preload Tesseract in background
+        getTesseractWorker();
+
+        // Native BarcodeDetector if supported
+        if ('BarcodeDetector' in window && !scannerBarcodeDetector) {
+            try {
+                scannerBarcodeDetector = new BarcodeDetector({
+                    formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code', 'data_matrix', 'itf', 'codabar', 'upc_a', 'upc_e']
+                });
+            } catch (e) {
+                scannerBarcodeDetector = null;
+            }
+        }
+
+        await startScannerCamera();
+    }
+
+    async function startScannerCamera(deviceId = null) {
+        stopScannerStream();
+
+        try {
+            const constraints = {
+                video: deviceId 
+                    ? { deviceId: { exact: deviceId } }
+                    : { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                audio: false
+            };
+
+            scannerStream = await navigator.mediaDevices.getUserMedia(constraints);
+            const video = document.getElementById('scannerVideo');
+            if (video) {
+                video.srcObject = scannerStream;
+                await video.play();
+            }
+
+            scannerTrack = scannerStream.getVideoTracks()[0];
+            isScannerRunning = true;
+
+            // Check torch capability
+            const torchBtn = document.getElementById('scannerTorchBtn');
+            if (torchBtn && scannerTrack && scannerTrack.getCapabilities) {
+                const caps = scannerTrack.getCapabilities();
+                if (caps && caps.torch) {
+                    torchBtn.style.display = 'inline-flex';
+                    scannerTorchEnabled = false;
+                } else {
+                    torchBtn.style.display = 'none';
+                }
+            }
+
+            // Enumerate cameras for flip button
+            if (navigator.mediaDevices.enumerateDevices) {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                scannerAvailableCameras = devices.filter(d => d.kind === 'videoinput');
+                const flipBtn = document.getElementById('scannerFlipBtn');
+                if (flipBtn) {
+                    flipBtn.style.display = (scannerAvailableCameras.length > 1) ? 'inline-flex' : 'none';
+                }
+            }
+
+            const statusText = document.getElementById('scannerStatusText');
+            if (statusText) statusText.textContent = "Namiřte rámeček na číslo štítku";
+
+            // Start auto-scan loop (interval ~ 420ms)
+            clearInterval(scannerScanInterval);
+            scannerScanInterval = setInterval(() => {
+                if (isScannerRunning && !isScannerLocked && !isScannerProcessing) {
+                    scanVideoFrame(false);
+                }
+            }, 420);
+        } catch (err) {
+            console.error("Kamera nedostupná:", err);
+            const statusText = document.getElementById('scannerStatusText');
+            if (statusText) statusText.textContent = "Nepodařilo se spustit kameru. Zkontrolujte oprávnění.";
+            showToast("Přístup ke kameře byl zamítnut nebo není k dispozici.");
+        }
+    }
+
+    function stopScannerStream() {
+        clearInterval(scannerScanInterval);
+        isScannerRunning = false;
+        if (scannerTrack) {
+            try {
+                if (scannerTorchEnabled) {
+                    scannerTrack.applyConstraints({ advanced: [{ torch: false }] });
+                }
+            } catch (e) {}
+            scannerTrack.stop();
+            scannerTrack = null;
+        }
+        if (scannerStream) {
+            scannerStream.getTracks().forEach(t => t.stop());
+            scannerStream = null;
+        }
+        const video = document.getElementById('scannerVideo');
+        if (video) video.srcObject = null;
+    }
+
+    async function toggleScannerTorch() {
+        if (!scannerTrack || !scannerTrack.getCapabilities) return;
+        try {
+            const caps = scannerTrack.getCapabilities();
+            if (caps && caps.torch) {
+                scannerTorchEnabled = !scannerTorchEnabled;
+                await scannerTrack.applyConstraints({ advanced: [{ torch: scannerTorchEnabled }] });
+                triggerHapticFeedback([12]);
+                const torchBtn = document.getElementById('scannerTorchBtn');
+                if (torchBtn) {
+                    torchBtn.style.background = scannerTorchEnabled ? 'rgba(251, 191, 36, 0.3)' : 'rgba(255,255,255,0.08)';
+                }
+            }
+        } catch (e) {
+            console.warn("Chyba při ovládání svítilny:", e);
+        }
+    }
+
+    async function switchScannerCamera() {
+        if (scannerAvailableCameras.length <= 1) return;
+        triggerHapticFeedback([14]);
+        scannerCurrentCameraIndex = (scannerCurrentCameraIndex + 1) % scannerAvailableCameras.length;
+        const targetDevice = scannerAvailableCameras[scannerCurrentCameraIndex];
+        if (targetDevice) {
+            await startScannerCamera(targetDevice.deviceId);
+        }
+    }
+
+    function getCroppedReticleCanvas() {
+        const video = document.getElementById('scannerVideo');
+        const reticle = document.getElementById('scannerReticle');
+        if (!video || !reticle || !video.videoWidth || !video.videoHeight) return null;
+
+        const videoRect = video.getBoundingClientRect();
+        const reticleRect = reticle.getBoundingClientRect();
+
+        // Calculate scale between displayed video and actual video stream
+        const scaleX = video.videoWidth / videoRect.width;
+        const scaleY = video.videoHeight / videoRect.height;
+
+        const cropX = Math.max(0, (reticleRect.left - videoRect.left) * scaleX);
+        const cropY = Math.max(0, (reticleRect.top - videoRect.top) * scaleY);
+        const cropW = Math.min(video.videoWidth - cropX, reticleRect.width * scaleX);
+        const cropH = Math.min(video.videoHeight - cropY, reticleRect.height * scaleY);
+
+        if (cropW <= 0 || cropH <= 0) return null;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.min(480, Math.round(cropW));
+        canvas.height = Math.min(240, Math.round(cropH));
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+
+        // Preprocessing: convert to grayscale and boost contrast for high-accuracy digit OCR
+        try {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const d = imgData.data;
+            let sumLum = 0;
+            const count = d.length / 4;
+            for (let i = 0; i < d.length; i += 4) {
+                sumLum += (0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2]);
+            }
+            const avgLum = sumLum / count;
+            const threshold = avgLum * 0.92;
+
+            for (let i = 0; i < d.length; i += 4) {
+                const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+                // Sharpen black text on bright tag background
+                const val = lum < threshold ? 0 : 255;
+                d[i] = val;
+                d[i+1] = val;
+                d[i+2] = val;
+            }
+            ctx.putImageData(imgData, 0, 0);
+        } catch (e) {}
+
+        return canvas;
+    }
+
+    async function scanVideoFrame(isManualSnap = false) {
+        if (isScannerProcessing || isScannerLocked) return;
+        isScannerProcessing = true;
+
+        const statusText = document.getElementById('scannerStatusText');
+        if (isManualSnap && statusText) {
+            statusText.textContent = "Rozpoznávám číslo...";
+        }
+
+        try {
+            const cropCanvas = getCroppedReticleCanvas();
+            if (!cropCanvas) {
+                isScannerProcessing = false;
+                return;
+            }
+
+            let candidateNumbers = [];
+
+            // Tier 1: Check Barcode / DataMatrix / QR if supported
+            if (scannerBarcodeDetector) {
+                try {
+                    const barcodes = await scannerBarcodeDetector.detect(cropCanvas);
+                    if (barcodes && barcodes.length > 0) {
+                        for (const b of barcodes) {
+                            const val = (b.rawValue || '').trim();
+                            const digits = val.match(/[0-9]+([/-][0-9]+)?/g);
+                            if (digits) candidateNumbers.push(...digits);
+                        }
+                    }
+                } catch (bErr) {}
+            }
+
+            // Tier 2: OCR with Tesseract
+            if (candidateNumbers.length === 0) {
+                const worker = await getTesseractWorker();
+                if (worker) {
+                    const ret = await worker.recognize(cropCanvas);
+                    const text = (ret && ret.data && ret.data.text) ? ret.data.text.trim() : '';
+                    if (text) {
+                        const matches = text.match(/[0-9]+([/-][0-9]+)?/g);
+                        if (matches) candidateNumbers.push(...matches);
+                    }
+                }
+            }
+
+            if (candidateNumbers.length > 0) {
+                // Match candidate numbers against rawDatabase
+                let matched = null;
+                for (const cand of candidateNumbers) {
+                    const cleanCand = cand.trim();
+                    if (!cleanCand) continue;
+
+                    // 1. Exact ID string match
+                    matched = rawDatabase.find(item => !item[4] && String(item[0]).trim() === cleanCand);
+                    if (matched) break;
+
+                    // 2. Numeric match (ignore leading zeros, e.g. 054 -> 54)
+                    const candInt = parseInt(cleanCand, 10);
+                    if (!isNaN(candInt)) {
+                        matched = rawDatabase.find(item => !item[4] && parseInt(item[0], 10) === candInt);
+                        if (matched) break;
+                    }
+                }
+
+                if (matched) {
+                    handleMoldMatchFound(matched);
+                    return;
+                } else if (isManualSnap) {
+                    const detectedNum = candidateNumbers[0];
+                    showToast(`Rozpoznáno číslo ${detectedNum}, ale forma není v databázi.`);
+                    if (statusText) statusText.textContent = `Rozpoznáno: #${detectedNum} (Nenalezeno v databázi)`;
+                    playScannerAudioBeep(false);
+                }
+            } else if (isManualSnap) {
+                showToast("Číslo štítku se nepodařilo rozpoznat. Zkuste zaostřit nebo použít blesk.");
+                if (statusText) statusText.textContent = "Číslo nerozpoznáno. Zkuste znovu.";
+                playScannerAudioBeep(false);
+            }
+        } catch (e) {
+            console.error("Chyba při skenování snímku:", e);
+        } finally {
+            isScannerProcessing = false;
+        }
+    }
+
+    function handleMoldMatchFound(matchedItem) {
+        isScannerLocked = true;
+        scannerMatchedMold = matchedItem;
+
+        haptic.cameraSuccess();
+        playScannerAudioBeep(true);
+
+        logUserAction(matchedItem[0], 'Skenování', 'Naskenována forma kamerou');
+
+        const reticle = document.getElementById('scannerReticle');
+        if (reticle) reticle.classList.add('matched');
+
+        const statusText = document.getElementById('scannerStatusText');
+        if (statusText) statusText.textContent = `Forma #${matchedItem[0]} nalezena!`;
+
+        const [num, pos, cust, status, isDel, productName] = matchedItem;
+
+        document.getElementById('scannerResMoldId').textContent = num;
+        document.getElementById('scannerResProduct').textContent = productName || 'Výroba nezadána';
+        document.getElementById('scannerResPosition').textContent = pos || 'Neuvedena';
+        document.getElementById('scannerResCustomer').textContent = `${cust || 'Bez zákazníka'} • ${status || 'Aktivní'}`;
+
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) drawer.classList.add('active');
+
+        // Automatically open the mold card after 650ms for hands-free lookup
+        setTimeout(() => {
+            if (isScannerLocked && scannerMatchedMold && String(scannerMatchedMold[0]) === String(num)) {
+                scannerConfirmOpen();
+            }
+        }, 650);
+    }
+
+    function scannerResumeScanning() {
+        triggerHapticFeedback([12]);
+        isScannerLocked = false;
+        scannerMatchedMold = null;
+
+        const reticle = document.getElementById('scannerReticle');
+        if (reticle) reticle.classList.remove('matched');
+
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) drawer.classList.remove('active');
+
+        const statusText = document.getElementById('scannerStatusText');
+        if (statusText) statusText.textContent = "Namiřte rámeček na číslo formy";
+    }
+
+    function captureTagPhotoNow() {
+        triggerHapticFeedback([16]);
+        scanVideoFrame(true);
+    }
+
+    function scannerConfirmOpen() {
+        if (!scannerMatchedMold) return;
+        const moldId = scannerMatchedMold[0];
+
+        triggerHapticFeedback([20]);
+        closeNumberScanner();
+
+        // Navigate to search tab and expand mold
+        switchTab('search');
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = moldId;
+            handleSearch();
+        }
+
+        setTimeout(() => {
+            const tbody = document.getElementById('searchResults');
+            if (tbody) {
+                const tr = tbody.querySelector(`tr[id^="accordion-trigger-search_${moldId}_"]`) || tbody.querySelector('tr[id^="accordion-trigger-search_"]');
+                if (tr) {
+                    const rowKey = tr.id.replace('accordion-trigger-', '');
+                    if (!expandedMoldsMap[rowKey]) {
+                        toggleAccordion(rowKey, moldId);
+                    }
+                    tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    tr.classList.add('row-highlight-pulse');
+                    setTimeout(() => tr.classList.remove('row-highlight-pulse'), 2500);
+                }
+            }
+        }, 120);
+    }
+
+    function closeNumberScanner() {
+        hideModalAnimated('numberScannerModal');
+        stopScannerStream();
+        isScannerLocked = false;
+        scannerMatchedMold = null;
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) drawer.classList.remove('active');
+        const reticle = document.getElementById('scannerReticle');
+        if (reticle) reticle.classList.remove('matched');
     }
 
     function openCommentModal(moldId) {
@@ -4920,14 +7245,20 @@
         });
     }
 
-    function openAddModal() {
+    function openAddModal(prefillId = '') {
         if (!checkAuthOrPrompt()) return;
-        document.getElementById('addMoldId').value = '';
+        document.getElementById('addMoldId').value = prefillId || '';
         document.getElementById('addMoldProductName').value = '';
         document.getElementById('addMoldPosition').value = 'Mezisklad';
         document.getElementById('addMoldStatus').value = '';
         renderCustomerSelects();
         showModalAnimated('addModal');
+        if (prefillId) {
+            setTimeout(() => {
+                const prodInput = document.getElementById('addMoldProductName');
+                if (prodInput) prodInput.focus();
+            }, 250);
+        }
     }
 
     function closeAddModal() { hideModalAnimated('addModal'); }
@@ -5221,6 +7552,7 @@
     }
 
     function filterPosition(pos, element) {
+        if (customerDragMoved) return;
         triggerHapticFeedback([12]);
         currentPositionFilter = pos;
         
@@ -5238,6 +7570,30 @@
         renderFullDatabase();
     }
 
+    function triggerSafeCascade(tbody) {
+        if (!tbody) return;
+        const container = tbody.closest('.table-container') || tbody;
+        const cleanAll = () => {
+            const items = tbody.querySelectorAll('.cascade-item');
+            if (items.length > 0) {
+                items.forEach(el => {
+                    el.classList.remove('cascade-item');
+                    el.style.animation = '';
+                    el.style.animationDelay = '';
+                    el.style.willChange = '';
+                });
+            }
+            container.removeEventListener('touchstart', cleanAll);
+            container.removeEventListener('scroll', cleanAll);
+            container.removeEventListener('mousedown', cleanAll);
+        };
+        container.addEventListener('touchstart', cleanAll, { passive: true, once: true });
+        container.addEventListener('scroll', cleanAll, { passive: true, once: true });
+        container.addEventListener('mousedown', cleanAll, { passive: true, once: true });
+        clearTimeout(tbody._cascadeTimer);
+        tbody._cascadeTimer = setTimeout(cleanAll, 520);
+    }
+
     function renderFullDatabase() {
         const tbody = document.getElementById('databaseTable');
         const stats = document.getElementById('dbStats');
@@ -5247,7 +7603,6 @@
         if (currentCustomerFilter !== 'ALL') {
             filtered = filtered.filter(item => String(item[2]).toLowerCase() === currentCustomerFilter.toLowerCase());
         }
-
         if (currentPositionFilter !== 'ALL') {
             filtered = filtered.filter(item => {
                 const p = String(item[1] || '').trim().toLowerCase();
@@ -5263,7 +7618,23 @@
         stats.textContent = `Zobrazeno forem: ${filtered.length} z ${rawDatabase.filter(i => !i[4]).length}`;
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data">Žádné formy v databázi</td></tr>`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" style="padding: 0 !important; background: transparent; border: none;">
+                        <div class="empty-state-card">
+                            <div class="empty-state-icon-box">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                                    <path d="m3.3 7 8.7 5 8.7-5"></path>
+                                    <path d="M12 22V12"></path>
+                                </svg>
+                            </div>
+                            <div class="empty-state-title">V této kategorii nejsou žádné formy</div>
+                            <div class="empty-state-desc">Zkuste přepnout filtr zákazníka nebo pozice v horní liště.</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
@@ -5273,18 +7644,20 @@
             const statusPill = renderStatusPill(status);
             const rowKey = `db_${num}_${idx}`;
             const isExpanded = Boolean(expandedMoldsMap[rowKey]);
-
             const commentsHtml = renderCommentsHtml(num);
+            const isCascade = idx < 8;
+            const cascadeClass = isCascade ? ' cascade-item' : '';
+            const cascadeStyle = isCascade ? ` style="--cascade-delay: ${idx * 34}ms;"` : '';
 
             return `
-                <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
+                <tr id="accordion-trigger-${rowKey}" class="${cascadeClass.trim()}" ${cascadeStyle} data-mold-id="${escapeHtml(num)}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
                     <td>
                         <div class="mold-cell-content">
                             <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
                             <span class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="font-weight: 600; cursor: pointer;">${escapeHtml(num)}</span>
                             ${statusPill}
                         </div>
-                        ${productName ? `<div class="product-name-sub">Výroba: ${escapeHtml(productName)}</div>` : ''}
+                        ${productName ? `<div class="product-name-sub">${escapeHtml(productName)}</div>` : ''}
                         ${commentsHtml}
                     </td>
                     <td>
@@ -5296,6 +7669,7 @@
                 </tr>
             `;
         }).join('');
+        triggerSafeCascade(tbody);
     }
 
     function renderDashboard() {
@@ -5325,7 +7699,22 @@
         stats.textContent = `Zobrazeno forem ke kontrole: ${filtered.length}`;
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">V tomto stavu nejsou žádné formy</td></tr>`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" style="padding: 0 !important; background: transparent; border: none;">
+                        <div class="empty-state-card">
+                            <div class="empty-state-icon-box">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="empty-state-title">Vše v pořádku</div>
+                            <div class="empty-state-desc">V tomto vybraném stavu kontroly se momentálně nenachází žádná forma.</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
@@ -5335,18 +7724,20 @@
             const statusPill = renderStatusPill(status);
             const rowKey = `dash_${num}_${idx}`;
             const isExpanded = Boolean(expandedMoldsMap[rowKey]);
-
             const commentsHtml = renderCommentsHtml(num);
+            const isCascade = idx < 8;
+            const cascadeClass = isCascade ? ' cascade-item' : '';
+            const cascadeStyle = isCascade ? ` style="--cascade-delay: ${idx * 34}ms;"` : '';
 
             return `
-                <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
+                <tr id="accordion-trigger-${rowKey}" class="${cascadeClass.trim()}" ${cascadeStyle} data-mold-id="${escapeHtml(num)}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
                     <td>
                         <div class="mold-cell-content">
                             <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
                             <span class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="font-weight: 600; cursor: pointer;">${escapeHtml(num)}</span>
                             ${statusPill}
                         </div>
-                        ${productName ? `<div class="product-name-sub">Výroba: ${escapeHtml(productName)}</div>` : ''}
+                        ${productName ? `<div class="product-name-sub">${escapeHtml(productName)}</div>` : ''}
                         ${commentsHtml}
                     </td>
                     <td>
@@ -5358,7 +7749,10 @@
                 </tr>
             `;
         }).join('');
+        triggerSafeCascade(tbody);
     }
+
+    let searchLogDebounceTimer = null;
 
     function handleSearch() {
         const query = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -5368,7 +7762,7 @@
 
         if (!query) {
             stats.textContent = '';
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Začněte psát do pole výše</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 1rem !important;">Začněte psát do pole výše</td></tr>`;
             return;
         }
 
@@ -5383,10 +7777,41 @@
             return matchId || matchPos || matchCust || matchProd || matchStatus;
         });
 
+        // Log search action with debounce to capture user intent without spamming
+        clearTimeout(searchLogDebounceTimer);
+        searchLogDebounceTimer = setTimeout(() => {
+            if (query && query.length >= 2) {
+                logUserAction('HLEDÁNÍ', 'Vyhledávání', `Hledal: "${query}" (${matched.length} výsledků)`);
+            }
+        }, 1800);
+
         stats.textContent = `Nalezeno výsledků: ${matched.length}`;
 
         if (matched.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data-centered" style="text-align: center !important;">Nic nenalezeno</td></tr>`;
+            const cleanQuery = escapeHtml(document.getElementById('searchInput').value.trim());
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" style="padding: 0 !important; background: transparent; border: none;">
+                        <div class="empty-state-card">
+                            <div class="empty-state-icon-box">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </div>
+                            <div class="empty-state-title">Forma <span class="highlight-mold">#${cleanQuery}</span> nebyla nalezena</div>
+                            <div class="empty-state-desc">V evidenci zatím neexistuje záznam odpovídající tomuto číslu nebo výrazu.</div>
+                            <button type="button" class="empty-state-btn" onclick="openAddModal('${cleanQuery.replace(/'/g, "\\'")}')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>Přidat formu</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
@@ -5396,18 +7821,20 @@
             const statusPill = renderStatusPill(status);
             const rowKey = `search_${num}_${idx}`;
             const isExpanded = Boolean(expandedMoldsMap[rowKey]);
-
             const commentsHtml = renderCommentsHtml(num);
+            const isCascade = idx < 8;
+            const cascadeClass = isCascade ? ' cascade-item' : '';
+            const cascadeStyle = isCascade ? ` style="--cascade-delay: ${idx * 34}ms;"` : '';
 
             return `
-                <tr id="accordion-trigger-${rowKey}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
+                <tr id="accordion-trigger-${rowKey}" class="${cascadeClass.trim()}" ${cascadeStyle} data-mold-id="${escapeHtml(num)}" oncontextmenu="handleMoldRowRightClick(event, '${escapeHtml(num)}')">
                     <td>
                         <div class="mold-cell-content">
                             <button id="accordion-btn-${rowKey}" class="toggle-accordion-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')">▼</button>
                             <span class="mold-clickable-id" onclick="toggleAccordion('${rowKey}', '${escapeHtml(num)}')" style="font-weight: 600; cursor: pointer;">${escapeHtml(num)}</span>
                             ${statusPill}
                         </div>
-                        ${productName ? `<div class="product-name-sub">Výroba: ${escapeHtml(productName)}</div>` : ''}
+                        ${productName ? `<div class="product-name-sub">${escapeHtml(productName)}</div>` : ''}
                         ${commentsHtml}
                     </td>
                     <td>
@@ -5419,9 +7846,11 @@
                 </tr>
             `;
         }).join('');
+        triggerSafeCascade(tbody);
     }
 
     function filterCustomer(customerName, element) {
+        if (customerDragMoved) return;
         triggerHapticFeedback([12]);
         currentCustomerFilter = customerName;
 
