@@ -479,7 +479,7 @@
 
         .search-input {
             width: 100%;
-            padding: 0.8rem 3.1rem 0.8rem 1rem;
+            padding: 0.8rem 3.4rem 0.8rem 1rem;
             font-size: 1.1rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -493,20 +493,26 @@
 
         .search-scan-icon-btn {
             position: absolute;
-            right: 0.5rem;
+            right: 0.35rem;
             top: 50%;
             transform: translateY(-50%);
             background: transparent;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            padding: 0.45rem;
+            min-width: 44px;
+            min-height: 44px;
+            padding: 0.5rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            transition: color 0.2s ease, transform 0.15s ease, background-color 0.2s ease;
-            z-index: 2;
+            border-radius: 8px;
+            transition: color 0.15s ease, transform 0.12s ease, background-color 0.15s ease;
+            z-index: 10;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .search-scan-icon-btn:hover {
@@ -516,6 +522,7 @@
 
         .search-scan-icon-btn:active {
             transform: translateY(-50%) scale(0.9) !important;
+            background-color: var(--border-color);
         }
 
         .search-scan-icon-btn svg {
@@ -2122,6 +2129,7 @@
             border: none;
             border-radius: 30px;
             padding: 0.75rem 1.6rem;
+            min-height: 44px;
             font-size: 0.92rem;
             font-weight: 700;
             cursor: pointer;
@@ -2129,7 +2137,11 @@
             align-items: center;
             gap: 0.55rem;
             box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .scanner-snap-btn:hover {
@@ -2139,6 +2151,13 @@
 
         .scanner-snap-btn:active {
             transform: scale(0.95);
+        }
+
+        .scanner-snap-btn:disabled {
+            opacity: 0.75;
+            cursor: not-allowed;
+            box-shadow: none;
+            pointer-events: none;
         }
 
         .scanner-result-drawer {
@@ -2669,7 +2688,7 @@
         <div id="tab-search" class="tab-content active">
             <div class="search-box">
                 <input type="text" id="searchInput" class="search-input" tabindex="0" placeholder="Zadejte číslo formy, výrobu, pozici nebo zákazníka..." oninput="handleSearch()" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">
-                <button type="button" class="search-scan-icon-btn" onclick="openNumberScanner()" title="Skenovat číslo formy fotoaparátem" aria-label="Skenovat číslo formy">
+                <button type="button" id="btnOpenScannerSearch" class="search-scan-icon-btn" onpointerdown="handleScanButtonPointerDown(event)" onclick="handleScanButtonTrigger(event)" title="Skenovat číslo formy fotoaparátem" aria-label="Skenovat číslo formy">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
                         <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
@@ -2886,15 +2905,6 @@
                 </div>
             </div>
 
-            <!-- Filter chips for activity types -->
-            <div style="display: flex; gap: 0.35rem; overflow-x: auto; padding-bottom: 2px;" id="uactFilterBar">
-                <button class="filter-chip active" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('ALL', this)">Vše</button>
-                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('SEARCH', this)">Hledání</button>
-                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('MOVE', this)">Pozice a stavy</button>
-                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('NOTE', this)">Poznámky & Foto</button>
-                <button class="filter-chip" style="font-size: 0.72rem; padding: 3px 8px;" onclick="filterUserActivityType('VIEW', this)">Návodky & Skener</button>
-            </div>
-
             <!-- Activity Items List -->
             <div id="userActivityList" style="display: flex; flex-direction: column; gap: 0.4rem; min-height: 120px;">
                 <div class="no-data">Načítání aktivity...</div>
@@ -3061,12 +3071,12 @@
                     <span class="scanner-status-dot"></span>
                     <span id="scannerStatusText">Hledám číslo štítku...</span>
                 </div>
-                <button type="button" class="scanner-snap-btn" onclick="captureTagPhotoNow()" title="Okamžité vyfocení a rozpoznání čísla">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <button type="button" id="scannerSnapBtn" class="scanner-snap-btn" onpointerdown="handleSnapBtnPointerDown(event)" onclick="captureTagPhotoNow(event)" title="Okamžité vyfocení a rozpoznání čísla">
+                    <svg id="scannerSnapBtnIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <circle cx="12" cy="12" r="4"></circle>
                     </svg>
-                    <span>Vyfotit a rozpoznat</span>
+                    <span id="scannerSnapBtnText">Vyfotit a rozpoznat</span>
                 </button>
             </div>
 
@@ -4013,13 +4023,6 @@
         }
         if (subtitleEl) subtitleEl.innerHTML = subText;
 
-        const filterBar = document.getElementById('uactFilterBar');
-        if (filterBar) {
-            filterBar.querySelectorAll('.filter-chip').forEach((btn, idx) => {
-                btn.classList.toggle('active', idx === 0);
-            });
-        }
-
         const uTotal = document.getElementById('uactTotal');
         const uMoves = document.getElementById('uactMoves');
         const uSearches = document.getElementById('uactSearches');
@@ -4045,15 +4048,8 @@
     }
 
     function filterUserActivityType(filterType, btnEl) {
-        triggerHapticFeedback([12]);
-        currentUserActivityFilter = filterType;
-
-        const filterBar = document.getElementById('uactFilterBar');
-        if (filterBar) {
-            filterBar.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-        }
-        if (btnEl) btnEl.classList.add('active');
-
+        // Kept for backward compatibility if invoked
+        currentUserActivityFilter = filterType || 'ALL';
         renderUserActivityList();
     }
 
@@ -4061,29 +4057,10 @@
         const listEl = document.getElementById('userActivityList');
         if (!listEl) return;
 
-        let filtered = currentUserActivityData;
-
-        if (currentUserActivityFilter !== 'ALL') {
-            filtered = filtered.filter(item => {
-                const moldIdStr = String(item.mold_id || '').toUpperCase();
-                const oldPosStr = String(item.old_position || '').toLowerCase();
-                const newPosStr = String(item.new_position || '').toLowerCase();
-
-                if (currentUserActivityFilter === 'SEARCH') {
-                    return moldIdStr === 'HLEDÁNÍ' || oldPosStr.includes('hled') || newPosStr.includes('hledal');
-                } else if (currentUserActivityFilter === 'MOVE') {
-                    return oldPosStr.includes('pozic') || newPosStr.includes('pozic') || oldPosStr.includes('stav') || newPosStr.includes('stav') || oldPosStr === 'položka vytvořena' || oldPosStr === 'koš';
-                } else if (currentUserActivityFilter === 'NOTE') {
-                    return oldPosStr.includes('koment') || oldPosStr.includes('foto') || newPosStr.includes('poznámk') || newPosStr.includes('fotograf');
-                } else if (currentUserActivityFilter === 'VIEW') {
-                    return oldPosStr.includes('prohlížení') || oldPosStr.includes('návodka') || oldPosStr.includes('skener') || oldPosStr.includes('detail formy') || newPosStr.includes('návodka') || newPosStr.includes('skener');
-                }
-                return true;
-            });
-        }
+        const filtered = currentUserActivityData || [];
 
         if (filtered.length === 0) {
-            listEl.innerHTML = '<div class="no-data" style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Žádné záznamy v této kategorii.</div>';
+            listEl.innerHTML = '<div class="no-data" style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Žádné záznamy aktivity.</div>';
             return;
         }
 
@@ -6557,11 +6534,70 @@
         }
     }
 
+    function handleScanButtonPointerDown(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+        const si = document.getElementById('searchInput');
+        if (si) si.blur();
+    }
+
+    function handleScanButtonTrigger(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+        const si = document.getElementById('searchInput');
+        if (si) si.blur();
+        openNumberScanner();
+    }
+
+    function handleSnapBtnPointerDown(e) {
+        if (e) {
+            e.stopPropagation();
+        }
+    }
+
+    function updateScannerSnapBtnState(isLoading) {
+        const snapBtn = document.getElementById('scannerSnapBtn');
+        const snapBtnText = document.getElementById('scannerSnapBtnText');
+        const snapBtnIcon = document.getElementById('scannerSnapBtnIcon');
+        if (!snapBtn) return;
+        if (isLoading) {
+            snapBtn.style.pointerEvents = 'none';
+            snapBtn.style.opacity = '0.85';
+            if (snapBtnText) snapBtnText.textContent = "Rozpoznávám...";
+            if (snapBtnIcon) snapBtnIcon.style.animation = "pulseDot 0.8s infinite ease-in-out";
+        } else {
+            snapBtn.style.pointerEvents = '';
+            snapBtn.style.opacity = '1';
+            if (snapBtnText) snapBtnText.textContent = "Vyfotit a rozpoznat";
+            if (snapBtnIcon) snapBtnIcon.style.animation = "";
+        }
+    }
+
+    let pendingManualSnap = false;
+
     async function openNumberScanner() {
         triggerHapticFeedback([16]);
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+        const si = document.getElementById('searchInput');
+        if (si) si.blur();
+
         isScannerLocked = false;
         scannerMatchedMold = null;
         isScannerProcessing = false;
+        pendingManualSnap = false;
+        updateScannerSnapBtnState(false);
 
         const reticle = document.getElementById('scannerReticle');
         if (reticle) reticle.classList.remove('matched');
@@ -6591,8 +6627,11 @@
         await startScannerCamera();
     }
 
+    let scannerSessionCounter = 0;
+
     async function startScannerCamera(deviceId = null) {
         stopScannerStream();
+        const currentSession = ++scannerSessionCounter;
 
         try {
             const constraints = {
@@ -6602,11 +6641,33 @@
                 audio: false
             };
 
-            scannerStream = await navigator.mediaDevices.getUserMedia(constraints);
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            // If scanner was closed or a new stream was requested in the meantime, stop this stream immediately
+            if (currentSession !== scannerSessionCounter || !isModalOpen('numberScannerModal')) {
+                stream.getTracks().forEach(t => t.stop());
+                return;
+            }
+
+            scannerStream = stream;
             const video = document.getElementById('scannerVideo');
             if (video) {
                 video.srcObject = scannerStream;
-                await video.play();
+                try {
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        await playPromise;
+                    }
+                } catch (playErr) {
+                    if (playErr.name !== 'AbortError') {
+                        console.warn("Chyba při spuštění přehrávání videa:", playErr);
+                    }
+                }
+            }
+
+            // Check again if still valid after play()
+            if (currentSession !== scannerSessionCounter) {
+                return;
             }
 
             scannerTrack = scannerStream.getVideoTracks()[0];
@@ -6645,6 +6706,9 @@
                 }
             }, 420);
         } catch (err) {
+            if (err && err.name === 'AbortError') {
+                return;
+            }
             console.error("Kamera nedostupná:", err);
             const statusText = document.getElementById('scannerStatusText');
             if (statusText) statusText.textContent = "Nepodařilo se spustit kameru. Zkontrolujte oprávnění.";
@@ -6653,6 +6717,7 @@
     }
 
     function stopScannerStream() {
+        scannerSessionCounter++;
         clearInterval(scannerScanInterval);
         isScannerRunning = false;
         if (scannerTrack) {
@@ -6669,7 +6734,12 @@
             scannerStream = null;
         }
         const video = document.getElementById('scannerVideo');
-        if (video) video.srcObject = null;
+        if (video) {
+            try {
+                video.pause();
+            } catch (e) {}
+            video.srcObject = null;
+        }
     }
 
     async function toggleScannerTorch() {
@@ -6753,8 +6823,18 @@
     }
 
     async function scanVideoFrame(isManualSnap = false) {
-        if (isScannerProcessing || isScannerLocked) return;
+        if (isScannerLocked) return;
+        if (isScannerProcessing) {
+            if (isManualSnap) {
+                pendingManualSnap = true;
+                updateScannerSnapBtnState(true);
+            }
+            return;
+        }
         isScannerProcessing = true;
+        if (isManualSnap) {
+            updateScannerSnapBtnState(true);
+        }
 
         const statusText = document.getElementById('scannerStatusText');
         if (isManualSnap && statusText) {
@@ -6764,7 +6844,6 @@
         try {
             const cropCanvas = getCroppedReticleCanvas();
             if (!cropCanvas) {
-                isScannerProcessing = false;
                 return;
             }
 
@@ -6834,6 +6913,15 @@
             console.error("Chyba při skenování snímku:", e);
         } finally {
             isScannerProcessing = false;
+            if (isManualSnap) {
+                updateScannerSnapBtnState(false);
+            }
+            if (pendingManualSnap && !isScannerLocked) {
+                pendingManualSnap = false;
+                setTimeout(() => {
+                    if (!isScannerLocked) scanVideoFrame(true);
+                }, 40);
+            }
         }
     }
 
@@ -6874,6 +6962,8 @@
         triggerHapticFeedback([12]);
         isScannerLocked = false;
         scannerMatchedMold = null;
+        pendingManualSnap = false;
+        updateScannerSnapBtnState(false);
 
         const reticle = document.getElementById('scannerReticle');
         if (reticle) reticle.classList.remove('matched');
@@ -6885,8 +6975,12 @@
         if (statusText) statusText.textContent = "Namiřte rámeček na číslo formy";
     }
 
-    function captureTagPhotoNow() {
-        triggerHapticFeedback([16]);
+    function captureTagPhotoNow(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        triggerHapticFeedback([18]);
         scanVideoFrame(true);
     }
 
@@ -6927,6 +7021,8 @@
         stopScannerStream();
         isScannerLocked = false;
         scannerMatchedMold = null;
+        pendingManualSnap = false;
+        updateScannerSnapBtnState(false);
         const drawer = document.getElementById('scannerResultDrawer');
         if (drawer) drawer.classList.remove('active');
         const reticle = document.getElementById('scannerReticle');
