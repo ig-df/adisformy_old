@@ -215,13 +215,13 @@
             position: relative;
         }
 
-        button:not(.toggle-accordion-btn), .filter-chip, .dash-card, .badge-position, tr, .tag-customer, .add-customer-chip, .top-icon-btn, .auth-btn, .superuser-badge-btn, .comment-item, .edit-btn, .comment-btn, .floating-corner-btn, .floating-corner-btn-left, .mold-clickable-id, .tab-btn {
+        button:not(.toggle-accordion-btn), .filter-chip, .dash-card, .badge-position, tr, .tag-customer, .add-customer-chip, .top-icon-btn, .auth-btn, .superuser-badge-btn, .comment-item, .edit-btn, .comment-btn, .floating-corner-btn, .floating-corner-btn-left, .floating-corner-btn-list, .shift-plan-item, .mold-clickable-id, .tab-btn {
             user-select: none;
             -webkit-user-select: none;
             transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease, filter 0.18s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        button:not(.toggle-accordion-btn):active, .filter-chip:active, .dash-card:active, .badge-position:active, .tag-customer:active, .add-customer-chip:active, .top-icon-btn:active, .auth-btn:active, .superuser-badge-btn:active, .floating-corner-btn:active, .floating-corner-btn-left:active, .tab-btn:active, .mold-clickable-id:active, .is-touched:not(.toggle-accordion-btn) {
+        button:not(.toggle-accordion-btn):active, .filter-chip:active, .dash-card:active, .badge-position:active, .tag-customer:active, .add-customer-chip:active, .top-icon-btn:active, .auth-btn:active, .superuser-badge-btn:active, .floating-corner-btn:active, .floating-corner-btn-left:active, .floating-corner-btn-list:active, .shift-plan-item:active, .tab-btn:active, .mold-clickable-id:active, .is-touched:not(.toggle-accordion-btn) {
             transform: scale(0.91) !important;
             opacity: 0.82 !important;
             filter: brightness(0.91) contrast(1.05) !important;
@@ -2167,6 +2167,68 @@
             100% { top: 88%; opacity: 0.3; }
         }
 
+        .scanner-mode-switch {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: inline-flex;
+            background: rgba(15, 23, 42, 0.82);
+            padding: 3px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(10px);
+            z-index: 22;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        }
+        .scanner-mode-btn {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+        .scanner-mode-btn.active {
+            background: #0284c7;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+        }
+        .scanner-mode-btn:active {
+            transform: scale(0.96);
+        }
+        .scanner-reticle.plan-mode {
+            width: 320px;
+            height: 240px;
+            max-width: 90%;
+            max-height: 52vh;
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+        .scanner-batch-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            background: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 9px;
+            padding: 0.6rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .scanner-batch-item:hover {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+        .scanner-batch-item.selected {
+            background: rgba(14, 165, 233, 0.12);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
         .scanner-guide-text {
             position: absolute;
             bottom: calc(50% + 80px);
@@ -2181,6 +2243,8 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             letter-spacing: 0.01em;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            transition: bottom 0.25s ease;
         }
 
         .scanner-controls-bottom {
@@ -2521,7 +2585,7 @@
         .log-item { padding: 0.75rem; border-bottom: 1px solid var(--border-color); font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.25rem; }
         .log-meta { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.78rem; text-transform: capitalize; }
         
-        .floating-corner-btn, .floating-corner-btn-left {
+        .floating-corner-btn, .floating-corner-btn-left, .floating-corner-btn-list {
             background: var(--card-bg); 
             border: 1px solid var(--border-color);
             border-radius: 50%; 
@@ -2534,15 +2598,40 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
             z-index: 999;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
         }
-        .floating-corner-btn:hover, .floating-corner-btn-left:hover {
+        .floating-corner-btn:hover, .floating-corner-btn-left:hover, .floating-corner-btn-list:hover {
             transform: scale(1.06);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
+        .corner-badge-counter {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.12rem 0.38rem;
+            border-radius: 999px;
+            min-width: 19px;
+            text-align: center;
+            line-height: 1.1;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            border: 1.5px solid var(--card-bg);
+            font-variant-numeric: tabular-nums;
+            pointer-events: none;
+            transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+        }
+        .corner-badge-counter.all-done {
+            background: #16a34a;
+        }
+
         @media (min-width: 601px) {
             .floating-corner-btn { position: absolute; bottom: 1.25rem; right: 1.25rem; }
-            .floating-corner-btn-left { position: absolute; bottom: 1.25rem; left: 1.25rem; }
+            .floating-corner-btn-list { position: absolute; bottom: 1.25rem; left: 1.25rem; }
+            .floating-corner-btn-left { position: absolute; bottom: calc(1.25rem + 48px + 10px); left: 1.25rem; }
         }
 
         @media (max-width: 600px) {
@@ -2551,11 +2640,381 @@
                 right: 1.25rem !important; 
                 bottom: max(1.25rem, env(safe-area-inset-bottom, 1.25rem)) !important; 
             }
-            .floating-corner-btn-left { 
+            .floating-corner-btn-list { 
                 position: fixed !important; 
                 left: 1.25rem !important; 
                 bottom: max(1.25rem, env(safe-area-inset-bottom, 1.25rem)) !important; 
             }
+            .floating-corner-btn-left { 
+                position: fixed !important; 
+                left: 1.25rem !important; 
+                bottom: calc(max(1.25rem, env(safe-area-inset-bottom, 1.25rem)) + 48px + 10px) !important; 
+            }
+        }
+
+        /* Shift Plan Checklist Styles */
+        .shift-plan-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .shift-plan-add-bar {
+            display: flex;
+            gap: 0.45rem;
+            align-items: center;
+        }
+        .shift-plan-add-input {
+            flex: 1;
+            padding: 0.55rem 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--card-bg);
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .shift-plan-add-input:focus {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+        }
+        .shift-plan-scan-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            padding: 0.55rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            background: rgba(14, 165, 233, 0.08);
+            color: #0284c7;
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .shift-plan-scan-btn:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+        .shift-plan-stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0.75rem;
+            background: var(--row-hover);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+        .shift-plan-stats-count {
+            font-weight: 700;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+        }
+        .shift-plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            max-height: 52vh;
+            overflow-y: auto;
+            padding-right: 0.15rem;
+        }
+        .shift-plan-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: background-color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+            gap: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .shift-plan-item:hover {
+            border-color: #cbd5e1;
+            background: var(--row-hover);
+        }
+        .shift-plan-item.is-checked {
+            opacity: 0.55;
+            background: rgba(241, 245, 249, 0.65);
+            border-color: rgba(203, 213, 225, 0.6);
+        }
+        .shift-plan-item.is-checked .shift-plan-mold-num {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .shift-plan-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 0;
+        }
+        .shift-plan-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: var(--card-bg);
+            transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: transparent;
+        }
+        .shift-plan-item.is-checked .shift-plan-checkbox {
+            background: #0f172a;
+            border-color: #0f172a;
+            color: #ffffff;
+        }
+        .shift-plan-checkbox svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2.5;
+        }
+        .shift-plan-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 0;
+        }
+        .shift-plan-mold-num {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .shift-plan-product {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+        .shift-plan-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        .shift-plan-del-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.35rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .shift-plan-del-btn:hover {
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.08);
+        }
+
+        /* Cabinet Seřizovače Minimal Chic Styles */
+        .cabinet-profile-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            background: var(--row-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            gap: 0.6rem;
+        }
+        .cabinet-profile-left {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+        .cabinet-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 7px;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: -0.01em;
+        }
+        .cabinet-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+        .cabinet-user-name {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cabinet-user-role-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.08rem 0.4rem;
+            border-radius: 4px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            letter-spacing: 0.01em;
+        }
+        .cabinet-user-role-badge.is-super {
+            border-color: #d97706;
+            color: #b45309;
+            background: rgba(245, 158, 11, 0.05);
+        }
+        .cabinet-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.45rem;
+            margin: 0.5rem 0 0.2rem 0;
+        }
+        .cabinet-stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            padding: 0.5rem 0.65rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+        .cabinet-stat-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .cabinet-stat-val {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+        /* Day Chips Filter Carousel */
+        .cabinet-days-chips-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            overflow-x: auto;
+            padding: 0.15rem 0;
+            margin-top: 0.15rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .cabinet-days-chips-bar::-webkit-scrollbar {
+            display: none;
+        }
+        .cabinet-day-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.32rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+            user-select: none;
+        }
+        .cabinet-day-chip:active {
+            transform: scale(0.96);
+        }
+        .cabinet-day-chip.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+        }
+        .cabinet-day-chip-count {
+            font-size: 0.72rem;
+            opacity: 0.85;
+            font-variant-numeric: tabular-nums;
+        }
+        .cabinet-molds-drilldown {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            max-height: 44vh;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+            padding-right: 0.15rem;
+        }
+        .cabinet-mold-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.65rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .cabinet-mold-row:hover {
+            background: var(--row-hover);
+        }
+        .cabinet-mold-row:active {
+            transform: scale(0.98);
+        }
+        .cabinet-mold-row-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            min-width: 0;
+        }
+        .cabinet-mold-id-line {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .cabinet-mold-time-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cabinet-mold-row-right {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-shrink: 0;
         }
 
         .helios-accordion-card {
@@ -2980,6 +3439,14 @@
     <button class="floating-corner-btn-left" id="trashCornerBtn" tabindex="0" onclick="openTrashModal()" title="Koš / Smazané formy" style="display: none;">
         <img src="icon7.png" alt="Koš">
     </button>
+    <button class="floating-corner-btn-list" id="shiftPlanCornerBtn" tabindex="0" onclick="openShiftPlanModal()" title="Seznam forem na směnu (Denní plán)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px; color: var(--text-main);">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            <path d="m9 14 2 2 4-4"></path>
+        </svg>
+        <span class="corner-badge-counter" id="shiftPlanBadge" style="display: none;">0</span>
+    </button>
     <button class="floating-corner-btn" tabindex="0" onclick="openDirectProdModal()" title="Forma po výrobě (Mezisklad)">
         <img src="icon6.png" alt="Forma po výrobě">
     </button>
@@ -3051,6 +3518,78 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="userCabinetModal">
+    <div class="modal-card" style="max-width: 490px; max-height: 86vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="flex-shrink: 0; padding-bottom: 0.6rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--text-main);">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <h3 style="margin: 0; font-size: 1rem;">Kabinet seřizovače</h3>
+            </div>
+            <button class="close-modal-btn" onclick="closeUserCabinetModal()">✕</button>
+        </div>
+        <div class="modal-body" style="padding-top: 0.5rem; overflow-y: auto; flex: 1;">
+            <div class="cabinet-profile-card">
+                <div class="cabinet-profile-left">
+                    <div class="cabinet-avatar" id="cabinetAvatar">--</div>
+                    <div class="cabinet-user-info">
+                        <span class="cabinet-user-name" id="cabinetUserName">Seřizovač</span>
+                        <span class="cabinet-user-role-badge" id="cabinetRoleBadge">
+                            <span id="cabinetRoleText">Seřizovač</span>
+                        </span>
+                    </div>
+                </div>
+                <button class="btn-secondary" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.25); padding: 0.35rem 0.65rem; font-size: 0.78rem;" onclick="promptLogoutFromCabinet()">
+                    Odhlásit se
+                </button>
+            </div>
+
+            <div class="cabinet-stats-grid">
+                <div class="cabinet-stat-card">
+                    <span class="cabinet-stat-label">Dnes nasazeno</span>
+                    <span class="cabinet-stat-val" id="cabinetStatToday">0</span>
+                </div>
+                <div class="cabinet-stat-card">
+                    <span class="cabinet-stat-label">Tento týden</span>
+                    <span class="cabinet-stat-val" id="cabinetStatWeek">0</span>
+                </div>
+                <div class="cabinet-stat-card">
+                    <span class="cabinet-stat-label">Tento měsíc</span>
+                    <span class="cabinet-stat-val" id="cabinetStatDays">0</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 0.45rem 0 0.2rem 0;">
+                <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Výběr směny</span>
+                <span id="cabinetSelectedDaySummary" style="font-size: 0.74rem; color: var(--text-muted);">Nasazené formy</span>
+            </div>
+
+            <!-- Chips carousel of days -->
+            <div class="cabinet-days-chips-bar" id="cabinetDaysChipsBar">
+                <div class="no-data" style="padding: 0.4rem 0; font-size: 0.8rem;">Načítání směn...</div>
+            </div>
+
+            <!-- Drill-down list of molds for selected day -->
+            <div class="cabinet-molds-drilldown" id="cabinetMoldsDrilldown">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.65rem; flex-shrink: 0;">
+            <button class="btn-secondary" style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; padding: 0.45rem 0.85rem;" onclick="openShiftPlanFromCabinet()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    <path d="m9 14 2 2 4-4"></path>
+                </svg>
+                <span>Plán na směnu</span>
+            </button>
+            <button class="btn-primary" style="font-size: 0.82rem; padding: 0.45rem 1rem;" onclick="closeUserCabinetModal()">Zavřít</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="logsModal">
     <div class="modal-card">
         <div class="modal-header"><h3>Historie</h3><button class="close-modal-btn" onclick="closeLogsModal()">✕</button></div>
@@ -3099,6 +3638,50 @@
         </div>
         <div class="modal-footer" style="flex-shrink: 0; justify-content: flex-end; padding-top: 0.5rem;">
             <button class="btn-primary" onclick="closeUserActivityModal()">Zavřít</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="shiftPlanModal">
+    <div class="modal-card" style="max-width: 520px;">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 0.55rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: var(--text-main);">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    <path d="m9 14 2 2 4-4"></path>
+                </svg>
+                <h3 style="margin: 0; font-size: 1.05rem;">Seznam forem na směnu</h3>
+            </div>
+            <button class="close-modal-btn" onclick="closeShiftPlanModal()">✕</button>
+        </div>
+        <div class="modal-body" style="padding-top: 0.75rem;">
+            <div class="shift-plan-container">
+                <div class="shift-plan-add-bar">
+                    <input type="text" id="shiftPlanAddInput" class="shift-plan-add-input" placeholder="Číslo formy (např. 765)..." autocomplete="off" onkeydown="if(event.key==='Enter') submitShiftPlanManualAdd()">
+                    <button class="shift-plan-scan-btn" onclick="startScannerFromShiftPlan()" title="Naskenovat srozvrh / denní plán z kamery">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <span>Skenovat list</span>
+                    </button>
+                    <button class="btn-primary" style="padding: 0.55rem 0.9rem; font-size: 0.88rem;" onclick="submitShiftPlanManualAdd()">+ Přidat</button>
+                </div>
+
+                <div class="shift-plan-stats-bar" id="shiftPlanStatsBar">
+                    <span>Odebráno ze stojanů: <strong class="shift-plan-stats-count" id="shiftPlanCheckedCount">0 / 0</strong></span>
+                    <span id="shiftPlanPercent" style="font-weight: 600;">0 %</span>
+                </div>
+
+                <div class="shift-plan-list" id="shiftPlanListContainer">
+                    <div class="no-data">Načítání seznamu...</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem;">
+            <button class="btn-secondary" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="clearShiftPlan()">Vyčistit seznam</button>
+            <button class="btn-primary" onclick="closeShiftPlanModal()">Hotovo</button>
         </div>
     </div>
 </div>
@@ -3241,9 +3824,15 @@
 
         <div class="scanner-viewport-wrapper" id="scannerViewport">
             <video id="scannerVideo" playsinline autoplay muted></video>
+
+            <!-- Mode Selector: Single tag vs Shift Plan Sheet -->
+            <div class="scanner-mode-switch" id="scannerModeSwitch">
+                <button type="button" class="scanner-mode-btn active" id="scannerModeTagBtn" onclick="setScannerMode('tag')">Štítek formy</button>
+                <button type="button" class="scanner-mode-btn" id="scannerModePlanBtn" onclick="setScannerMode('plan')">Denní plán (Seznam)</button>
+            </div>
             
             <div class="scanner-overlay-mask">
-                <div class="scanner-guide-text">Namiřte rámeček na číslo formy nebo název výroby</div>
+                <div class="scanner-guide-text" id="scannerGuideText">Namiřte rámeček na číslo formy nebo název výroby</div>
                 <div class="scanner-reticle" id="scannerReticle">
                     <div class="reticle-corner tl"></div>
                     <div class="reticle-corner tr"></div>
@@ -3306,6 +3895,20 @@
                     </div>
                     <div class="scanner-actions-row">
                         <button type="button" class="btn-primary" id="scannerOpenAllBtn" onclick="scannerConfirmOpenAll()" style="padding: 0.75rem 1rem; font-weight: 700; background: #1e293b; color: #ffffff; border: 1px solid #475569;">Zobrazit vše v hledání</button>
+                        <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #0f172a; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1);">Znovu skenovat</button>
+                    </div>
+                </div>
+
+                <!-- Batch / Shift Plan Sheet Match View -->
+                <div id="scannerBatchResultView" style="display: none;">
+                    <div class="scanner-result-badge" id="scannerBatchResultBadge" style="background: rgba(14, 165, 233, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">✓ Nalezeny formy ze seznamu</div>
+                    <div class="scanner-multi-title" id="scannerBatchTitle">Rozpoznané formy</div>
+                    <div class="scanner-multi-subtitle" id="scannerBatchSubtitle">Vyberte formy k přidání do plánu na směnu:</div>
+                    <div class="scanner-multi-list" id="scannerBatchList">
+                        <!-- Populated dynamically with checkboxes -->
+                    </div>
+                    <div class="scanner-actions-row">
+                        <button type="button" class="btn-primary" id="scannerBatchAddBtn" onclick="scannerConfirmBatchAdd()" style="padding: 0.75rem 1rem; font-weight: 700; background: #0284c7; color: #ffffff; border: 1px solid #38bdf8;">+ Přidat vybrané do plánu</button>
                         <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #0f172a; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1);">Znovu skenovat</button>
                     </div>
                 </div>
@@ -3873,6 +4476,10 @@
             closeAddCustomerModal();
         } else if (modalId === 'directProdModal') {
             closeDirectProdModal();
+        } else if (modalId === 'shiftPlanModal') {
+            closeShiftPlanModal();
+        } else if (modalId === 'userCabinetModal') {
+            closeUserCabinetModal();
         } else {
             hideModalAnimated(modalId);
         }
@@ -3940,6 +4547,7 @@
 
     let instantSelectedFormats = { sql: false, csv: false };
     let autoSelectedFormats = { sql: false, csv: false };
+    let currentShiftPlan = [];
 
     async function pingUserPresence() {
         if (!currentUser) return;
@@ -3958,7 +4566,7 @@
                     user_name: normalizedUser,
                     last_seen: new Date().toISOString(),
                     device_type: device,
-                    role: isSuperUser ? 'superuser' : 'operator'
+                    role: isSuperUser ? 'superuser' : 'serizovac'
                 }, { onConflict: 'user_name' });
 
             updateOnlineBadge();
@@ -5080,6 +5688,7 @@
         updateTabIndicator();
         window.addEventListener('resize', updateTabIndicator);
 
+        loadShiftPlan();
         fetchData();
         setupRealtimeSubscription();
     });
@@ -5256,7 +5865,7 @@
         const onlineBtn = document.getElementById('onlineUsersToggleBtn');
 
         if (currentUser) {
-            authBtn.title = `Přihlášen jako: ${currentUser} (Klikněte pro odhlášení)`;
+            authBtn.title = `Přihlášen jako: ${currentUser} (Otevřít profil seřizovače)`;
             authBtn.classList.add('logged-in');
 
             if (isSuperUser) {
@@ -5279,17 +5888,7 @@
     function handleAuthClick() {
         triggerHapticFeedback([18]);
         if (currentUser) {
-            showCustomConfirm("Odhlášení", `Chcete se odhlásit z účtu ${currentUser}?`, "Odhlásit", () => {
-                currentUser = null;
-                isSuperUser = false;
-                localStorage.removeItem('adis_user_name');
-                localStorage.removeItem('adis_is_superuser');
-                eraseCookie('adis_user_name');
-                eraseCookie('adis_is_superuser');
-                updateAuthUI();
-                refreshUI();
-                showToast("Byli jste odhlášen");
-            });
+            openUserCabinetModal();
         } else {
             openLoginModal();
         }
@@ -5325,6 +5924,7 @@
         setCookie('adis_is_superuser', isSuperUser ? 'true' : 'false', 365);
         
         closeLoginModal();
+        loadShiftPlan();
         updateAuthUI();
         refreshUI();
 
@@ -5592,6 +6192,11 @@
 
     function refreshUI() {
         updateTrashIconVisibility();
+        updateShiftPlanBadge();
+        const shiftModal = document.getElementById('shiftPlanModal');
+        if (shiftModal && shiftModal.classList.contains('active')) {
+            renderShiftPlanList();
+        }
         renderCustomerFilters();
         renderCustomerSelects();
         renderFullDatabase();
@@ -6695,6 +7300,8 @@
     let isScannerRunning = false;
     let isScannerProcessing = false;
     let isScannerLocked = false;
+    let scannerActiveMode = 'tag'; // 'tag' (single mold) | 'plan' (shift plan / daily sheet)
+    let scannerBatchMolds = [];
     let scannerTorchEnabled = false;
     let scannerCurrentCameraIndex = 0;
     let scannerAvailableCameras = [];
@@ -6705,6 +7312,45 @@
     let scannerStableCandidate = null;
     let scannerAutoOpenTimer = null;
     let scannerBarcodeDetector = null;
+
+    function setScannerMode(mode) {
+        if (scannerActiveMode === mode) return;
+        scannerActiveMode = mode;
+        triggerHapticFeedback([14]);
+
+        const tagBtn = document.getElementById('scannerModeTagBtn');
+        const planBtn = document.getElementById('scannerModePlanBtn');
+        const reticle = document.getElementById('scannerReticle');
+        const guideText = document.getElementById('scannerGuideText');
+        const statusText = document.getElementById('scannerStatusText');
+
+        if (tagBtn) tagBtn.classList.toggle('active', mode === 'tag');
+        if (planBtn) planBtn.classList.toggle('active', mode === 'plan');
+
+        if (reticle) {
+            reticle.classList.toggle('plan-mode', mode === 'plan');
+        }
+
+        if (guideText) {
+            guideText.textContent = mode === 'plan'
+                ? "Namiřte rámeček na denní plán nebo seznam forem"
+                : "Namiřte rámeček na číslo formy nebo název výroby";
+        }
+
+        if (statusText) {
+            statusText.textContent = mode === 'plan'
+                ? "Hledám seznam forem v denním plánu..."
+                : "Hledám číslo nebo název výroby...";
+        }
+
+        scannerResumeScanning();
+    }
+
+    function startScannerFromShiftPlan() {
+        triggerHapticFeedback([16]);
+        closeShiftPlanModal();
+        openNumberScanner('plan');
+    }
 
     // Pleasant audio feedback
     function playScannerAudioBeep(isSuccess = true) {
@@ -6814,8 +7460,11 @@
 
     let pendingManualSnap = false;
 
-    async function openNumberScanner() {
+    async function openNumberScanner(initialMode = 'tag') {
         triggerHapticFeedback([16]);
+        if (initialMode) {
+            setScannerMode(initialMode);
+        }
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
         }
@@ -7620,6 +8269,118 @@
         return null;
     }
 
+    function matchScannedPlanBatch(rawOcrText, barcodeValues = [], cropCanvas = null) {
+        const activeMolds = rawDatabase.filter(item => !item[4]);
+        if (activeMolds.length === 0) return [];
+
+        const ocrStr = String(rawOcrText || '');
+        const normOcr = normalizeTextForMatch(ocrStr);
+        const hwNormOcr = normalizeHandwritingOCR(ocrStr);
+        const foundMoldsMap = new Map();
+
+        // 1. Check all barcode values
+        for (const b of barcodeValues) {
+            const cleanB = String(b || '').trim();
+            if (cleanB) {
+                const mold = activeMolds.find(m => String(m[0]).trim() === cleanB);
+                if (mold && !foundMoldsMap.has(String(mold[0]))) {
+                    foundMoldsMap.set(String(mold[0]), mold);
+                }
+            }
+        }
+
+        // 2. Multi-line extraction: split OCR by lines
+        const lines = ocrStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const isEuroSevenGlyph = (t) => /^[-+tTF\/?!~\\\]>]$/i.test(t);
+        const isEuroOneGlyph = (t) => /^[|Il!1]$/.test(t);
+
+        // Visual check for European handwritten '7'
+        const glyphAnalysis = analyzeHandwrittenDigitShape(cropCanvas);
+        const isVisualSeven = glyphAnalysis ? glyphAnalysis.isSeven : false;
+
+        const candidateNumbers = new Set();
+
+        for (const line of lines) {
+            const cleaned = line.replace(/[[\](){}<>#]/g, ' ').replace(/\s+/g, ' ').trim();
+            const tokens = cleaned.split(' ').filter(Boolean);
+            if (tokens.length === 0) continue;
+
+            const seq = [];
+            for (let i = 0; i < tokens.length; i++) {
+                const tok = tokens[i];
+                if (/^\d+$/.test(tok)) {
+                    seq.push(tok);
+                } else if (isEuroSevenGlyph(tok) && i < tokens.length - 1 && /^\d+$/.test(tokens[i + 1])) {
+                    seq.push('7');
+                } else if (isEuroOneGlyph(tok) && i < tokens.length - 1 && /^\d+$/.test(tokens[i + 1])) {
+                    seq.push('1');
+                }
+            }
+
+            if (seq.length >= 2) {
+                const combined = seq.join('');
+                if (combined.length >= 2 && combined.length <= 5) {
+                    candidateNumbers.add(combined);
+                    if (combined.startsWith('7')) candidateNumbers.add('1' + combined.slice(1));
+                    if (combined.startsWith('1')) candidateNumbers.add('7' + combined.slice(1));
+                }
+            }
+
+            for (const tok of tokens) {
+                if (/^\d{2,5}$/.test(tok)) {
+                    candidateNumbers.add(tok);
+                } else {
+                    const pMatch = tok.match(/^[-+tTF\/?!~\\\]>](\d{2,4})$/i);
+                    if (pMatch) {
+                        candidateNumbers.add('7' + pMatch[1]);
+                        candidateNumbers.add('1' + pMatch[1]);
+                    }
+                }
+            }
+        }
+
+        if (isVisualSeven) {
+            const extra = [];
+            for (const c of candidateNumbers) {
+                if (c.includes('1')) extra.push(c.replace(/1/g, '7'));
+            }
+            extra.forEach(e => candidateNumbers.add(e));
+        }
+
+        // Match direct numbers
+        for (const cand of candidateNumbers) {
+            const mold = activeMolds.find(m => String(m[0]).trim() === cand);
+            if (mold && !foundMoldsMap.has(String(mold[0]))) {
+                foundMoldsMap.set(String(mold[0]), mold);
+            }
+        }
+
+        // Also check if text matched any product names
+        const prodGroups = new Map();
+        for (const item of activeMolds) {
+            const prodName = (item[5] || '').trim();
+            if (!prodName) continue;
+            const normP = normalizeTextForMatch(prodName);
+            if (normP.length < 3) continue;
+            if (!prodGroups.has(normP)) {
+                prodGroups.set(normP, { origName: prodName, molds: [] });
+            }
+            prodGroups.get(normP).molds.push(item);
+        }
+
+        for (const [normP, group] of prodGroups.entries()) {
+            if (isWholeWordOrPhraseMatch(normOcr, normP) || isWholeWordOrPhraseMatch(hwNormOcr, normP)) {
+                for (const m of group.molds) {
+                    if (!foundMoldsMap.has(String(m[0]))) {
+                        foundMoldsMap.set(String(m[0]), m);
+                    }
+                }
+            }
+        }
+
+        return Array.from(foundMoldsMap.values());
+    }
+
     async function scanVideoFrame(isManualSnap = false) {
         if (isScannerLocked) return;
         if (isScannerProcessing) {
@@ -7674,7 +8435,46 @@
                 }
             }
 
-            // Intelligent matching against database
+            // Mode check: Shift plan sheet vs Single tag
+            if (scannerActiveMode === 'plan') {
+                const batchMolds = matchScannedPlanBatch(detectedText, barcodeValues, cropCanvas);
+                if (batchMolds && batchMolds.length > 0) {
+                    if (isManualSnap) {
+                        scannerStableCandidate = null;
+                        handleBatchMoldMatchFound(batchMolds);
+                        return;
+                    }
+                    const batchKey = 'batch_' + batchMolds.map(m => m[0]).sort().join('_');
+                    const now = Date.now();
+                    if (scannerStableCandidate && scannerStableCandidate.key === batchKey && (now - scannerStableCandidate.time < 1600)) {
+                        scannerStableCandidate.count++;
+                        if (scannerStableCandidate.count >= 2) {
+                            scannerStableCandidate = null;
+                            handleBatchMoldMatchFound(batchMolds);
+                            return;
+                        }
+                    } else {
+                        scannerStableCandidate = {
+                            key: batchKey,
+                            count: 1,
+                            time: now
+                        };
+                        if (statusText) {
+                            statusText.textContent = `Nalezeno ${batchMolds.length} forem, zaměřuji...`;
+                        }
+                    }
+                    return;
+                } else {
+                    if (isManualSnap) {
+                        showToast("Na listu nebyly nalezeny žádné formy z databáze. Zkuste přiblížit nebo zaostřit.");
+                        if (statusText) statusText.textContent = "Žádné formy nerozpoznány. Zkuste přiblížit.";
+                        playScannerAudioBeep(false);
+                    }
+                    return;
+                }
+            }
+
+            // Intelligent matching against database (Tag mode)
             const matchResult = matchScannedData(detectedText, barcodeValues, cropCanvas);
 
             if (matchResult) {
@@ -7924,6 +8724,138 @@
         }
     }
 
+    let scannerSelectedBatchMoldIds = new Set();
+
+    function handleBatchMoldMatchFound(molds) {
+        if (!molds || molds.length === 0) return;
+        isScannerLocked = true;
+        scannerBatchMolds = molds;
+        scannerSelectedBatchMoldIds = new Set(molds.map(m => String(m[0])));
+
+        haptic.cameraSuccess();
+        playScannerAudioBeep(true);
+
+        const reticle = document.getElementById('scannerReticle');
+        if (reticle) {
+            reticle.classList.add('matched');
+            reticle.classList.add('matched-multi');
+        }
+
+        const count = molds.length;
+        const countStr = count === 1 ? 'forma' : (count < 5 ? 'formy' : 'forem');
+
+        const statusText = document.getElementById('scannerStatusText');
+        if (statusText) {
+            statusText.textContent = `Denní plán: nalezeno ${count} ${countStr}`;
+        }
+
+        const singleView = document.getElementById('scannerSingleResultView');
+        const multiView = document.getElementById('scannerMultiResultView');
+        const batchView = document.getElementById('scannerBatchResultView');
+
+        if (singleView) singleView.style.display = 'none';
+        if (multiView) multiView.style.display = 'none';
+        if (batchView) batchView.style.display = 'block';
+
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) {
+            drawer.classList.add('multi-mode');
+            drawer.classList.add('active');
+        }
+
+        const badge = document.getElementById('scannerBatchResultBadge');
+        if (badge) {
+            badge.textContent = `✓ Nalezeno ${count} ${countStr} v denním plánu`;
+        }
+
+        renderBatchList();
+    }
+
+    function renderBatchList() {
+        const listContainer = document.getElementById('scannerBatchList');
+        const addBtn = document.getElementById('scannerBatchAddBtn');
+        if (!listContainer) return;
+
+        listContainer.innerHTML = scannerBatchMolds.map(m => {
+            const [num, pos, cust, status, isDel, pName] = m;
+            const idStr = String(num);
+            const isSelected = scannerSelectedBatchMoldIds.has(idStr);
+            const badgeClass = getPositionBadgeClass(pos);
+            const displayPos = formatPositionDisplay(pos);
+
+            return `
+                <div class="scanner-batch-item ${isSelected ? 'selected' : ''}" onclick="toggleBatchMoldSelection('${escapeHtml(idStr)}')">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer;" onclick="event.stopPropagation(); toggleBatchMoldSelection('${escapeHtml(idStr)}')">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <span style="font-weight: 800; font-size: 0.96rem; color: #f8fafc; font-family: monospace;">#${escapeHtml(idStr)}</span>
+                                <span class="${badgeClass}" style="margin: 0; font-size: 0.74rem;">${escapeHtml(displayPos)}</span>
+                            </div>
+                            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+                                ${escapeHtml(pName || cust || 'Bez názvu')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (addBtn) {
+            const count = scannerSelectedBatchMoldIds.size;
+            addBtn.textContent = count > 0 ? `+ Přidat vybrané (${count}) do plánu` : 'Vyberte alespoň jednu formu';
+            addBtn.disabled = count === 0;
+            addBtn.style.opacity = count === 0 ? '0.5' : '1';
+        }
+    }
+
+    function toggleBatchMoldSelection(moldId) {
+        triggerHapticFeedback([12]);
+        const idStr = String(moldId);
+        if (scannerSelectedBatchMoldIds.has(idStr)) {
+            scannerSelectedBatchMoldIds.delete(idStr);
+        } else {
+            scannerSelectedBatchMoldIds.add(idStr);
+        }
+        renderBatchList();
+    }
+
+    function scannerConfirmBatchAdd() {
+        if (scannerSelectedBatchMoldIds.size === 0) return;
+        triggerHapticFeedback([25, 45, 25]);
+
+        let addedCount = 0;
+        scannerSelectedBatchMoldIds.forEach(mId => {
+            const exists = shiftPlanList.some(item => String(item.id) === String(mId));
+            if (!exists) {
+                const moldData = rawDatabase.find(m => String(m[0]) === String(mId));
+                if (moldData) {
+                    shiftPlanList.push({
+                        id: moldData[0],
+                        pos: moldData[1],
+                        customer: moldData[2],
+                        product: moldData[5] || '',
+                        checked: false,
+                        addedAt: new Date().toISOString()
+                    });
+                    addedCount++;
+                }
+            }
+        });
+
+        if (addedCount > 0) {
+            saveShiftPlanToStorage();
+            updateShiftPlanBadge();
+            logUserAction('PLÁN', 'Dávkový sken', `Přidáno ${addedCount} forem z listu do plánu na směnu`);
+            showToast(`Přidáno ${addedCount} forem do plánu směny!`);
+        } else {
+            showToast("Všechny vybrané formy již v plánu jsou.");
+        }
+
+        closeNumberScanner();
+        openShiftPlanModal();
+    }
+
     function scannerResumeScanning() {
         triggerHapticFeedback([12]);
         clearTimeout(scannerAutoOpenTimer);
@@ -7931,6 +8863,8 @@
         scannerMatchedMold = null;
         scannerMatchedMulti = null;
         scannerStableCandidate = null;
+        scannerBatchMolds = [];
+        scannerSelectedBatchMoldIds.clear();
         pendingManualSnap = false;
         updateScannerSnapBtnState(false);
 
@@ -7940,6 +8874,13 @@
             reticle.classList.remove('matched-multi');
         }
 
+        const singleView = document.getElementById('scannerSingleResultView');
+        const multiView = document.getElementById('scannerMultiResultView');
+        const batchView = document.getElementById('scannerBatchResultView');
+        if (singleView) singleView.style.display = '';
+        if (multiView) multiView.style.display = 'none';
+        if (batchView) batchView.style.display = 'none';
+
         const drawer = document.getElementById('scannerResultDrawer');
         if (drawer) {
             drawer.classList.remove('active');
@@ -7947,7 +8888,11 @@
         }
 
         const statusText = document.getElementById('scannerStatusText');
-        if (statusText) statusText.textContent = "Namiřte rámeček na číslo formy nebo název výroby";
+        if (statusText) {
+            statusText.textContent = scannerActiveMode === 'plan'
+                ? "Hledám seznam forem v denním plánu..."
+                : "Namiřte rámeček na číslo formy nebo název výroby";
+        }
     }
 
     function captureTagPhotoNow(e) {
@@ -7972,8 +8917,18 @@
         scannerMatchedMold = null;
         scannerMatchedMulti = null;
         scannerStableCandidate = null;
+        scannerBatchMolds = [];
+        scannerSelectedBatchMoldIds.clear();
         pendingManualSnap = false;
         updateScannerSnapBtnState(false);
+
+        const singleView = document.getElementById('scannerSingleResultView');
+        const multiView = document.getElementById('scannerMultiResultView');
+        const batchView = document.getElementById('scannerBatchResultView');
+        if (singleView) singleView.style.display = '';
+        if (multiView) multiView.style.display = 'none';
+        if (batchView) batchView.style.display = 'none';
+
         const drawer = document.getElementById('scannerResultDrawer');
         if (drawer) {
             drawer.classList.remove('active');
@@ -8482,6 +9437,580 @@
                 setTimeout(() => { isSubmittingAction = false; }, 800);
             }
         });
+    }
+
+    // ==========================================
+    // SEZNAM FOREM NA SMĚNU (DENNÍ PLÁN SEŘIZOVAČE)
+    // ==========================================
+    function getShiftPlanStorageKey() {
+        return 'adis_shift_plan_' + (currentUser ? encodeURIComponent(currentUser.trim()) : 'default');
+    }
+
+    function loadShiftPlan() {
+        try {
+            const raw = localStorage.getItem(getShiftPlanStorageKey());
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                currentShiftPlan = Array.isArray(parsed) ? parsed : [];
+            } else {
+                currentShiftPlan = [];
+            }
+        } catch (e) {
+            console.warn('Shift plan load error:', e);
+            currentShiftPlan = [];
+        }
+        updateShiftPlanBadge();
+    }
+
+    function saveShiftPlan() {
+        try {
+            localStorage.setItem(getShiftPlanStorageKey(), JSON.stringify(currentShiftPlan));
+        } catch (e) {
+            console.warn('Shift plan save error:', e);
+        }
+        updateShiftPlanBadge();
+    }
+
+    function updateShiftPlanBadge() {
+        const badge = document.getElementById('shiftPlanBadge');
+        if (!badge) return;
+        const total = currentShiftPlan.length;
+        if (total === 0) {
+            badge.style.display = 'none';
+            badge.classList.remove('all-done');
+            badge.textContent = '0';
+        } else {
+            const checked = currentShiftPlan.filter(item => item.checked).length;
+            badge.style.display = 'inline-flex';
+            badge.textContent = total > 1 ? `${checked}/${total}` : (checked ? '✓' : '1');
+            if (checked === total && total > 0) {
+                badge.classList.add('all-done');
+            } else {
+                badge.classList.remove('all-done');
+            }
+        }
+    }
+
+    function openShiftPlanModal() {
+        triggerHapticFeedback([18]);
+        loadShiftPlan();
+        renderShiftPlanList();
+        showModalAnimated('shiftPlanModal');
+        setTimeout(() => {
+            const input = document.getElementById('shiftPlanAddInput');
+            if (input) input.focus();
+        }, 220);
+    }
+
+    function closeShiftPlanModal() {
+        hideModalAnimated('shiftPlanModal');
+    }
+
+    function renderShiftPlanList() {
+        const container = document.getElementById('shiftPlanListContainer');
+        const checkedCountEl = document.getElementById('shiftPlanCheckedCount');
+        const percentEl = document.getElementById('shiftPlanPercent');
+        if (!container) return;
+
+        const total = currentShiftPlan.length;
+        const checkedCount = currentShiftPlan.filter(item => item.checked).length;
+
+        if (checkedCountEl) checkedCountEl.textContent = `${checkedCount} / ${total}`;
+        if (percentEl) {
+            const pct = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+            percentEl.textContent = `${pct} %`;
+            percentEl.style.color = (pct === 100 && total > 0) ? '#16a34a' : 'inherit';
+        }
+
+        if (total === 0) {
+            container.innerHTML = `
+                <div class="empty-state-card" style="padding: 1.5rem 1rem; border-color: var(--border-color); box-shadow: none;">
+                    <div class="empty-state-icon-box">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            <path d="m9 14 2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <div class="empty-state-title" style="font-size: 0.95rem;">Žádné formy v plánu</div>
+                    <div class="empty-state-desc" style="font-size: 0.8rem;">Zadejte číslo formy výše a klikněte + Přidat, nebo naskenujte denní plán kamerou.</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = currentShiftPlan.map(item => {
+            const cleanNum = String(item.num || '').trim();
+            const mold = rawDatabase.find(m => String(m[0]).trim() === cleanNum);
+            
+            let pos = 'Neznámá';
+            let prodName = 'Nenalezena v databázi';
+            let cust = '';
+            let badgeClass = 'badge-position pos-mezisklad';
+            let displayPos = 'Mezisklad';
+
+            if (mold) {
+                pos = mold[1] || 'Mezisklad';
+                cust = mold[2] || '';
+                prodName = mold[5] || 'Bez názvu výroby';
+                badgeClass = getPositionBadgeClass(pos);
+                displayPos = formatPositionDisplay(pos);
+            }
+
+            const isChecked = Boolean(item.checked);
+            const checkIcon = isChecked ? `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            ` : '';
+
+            return `
+                <div class="shift-plan-item ${isChecked ? 'is-checked' : ''}" onclick="toggleShiftPlanItem('${escapeHtml(cleanNum)}')">
+                    <div class="shift-plan-left">
+                        <div class="shift-plan-checkbox" title="${isChecked ? 'Odebráno ze stojanu' : 'Označit jako odebrané'}">
+                            ${checkIcon}
+                        </div>
+                        <div class="shift-plan-info">
+                            <div class="shift-plan-mold-num">
+                                <span style="cursor: pointer;" onclick="event.stopPropagation(); inspectMoldFromPlan('${escapeHtml(cleanNum)}')" title="Zobrazit v databázi">Forma #${escapeHtml(cleanNum)}</span>
+                                ${cust ? `<span class="tag-customer" style="font-size: 0.68rem; padding: 0.1rem 0.35rem;">${escapeHtml(cust)}</span>` : ''}
+                            </div>
+                            <div class="shift-plan-product" title="${escapeHtml(prodName)}">${escapeHtml(prodName)}</div>
+                        </div>
+                    </div>
+                    <div class="shift-plan-right">
+                        <span class="${badgeClass}" style="font-size: 0.78rem;" title="Pozice: ${escapeHtml(pos)}">${escapeHtml(displayPos)}</span>
+                        <button class="shift-plan-del-btn" onclick="removeShiftPlanItem('${escapeHtml(cleanNum)}', event)" title="Odebrat ze seznamu">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleShiftPlanItem(moldNum) {
+        const item = currentShiftPlan.find(p => String(p.num).trim() === String(moldNum).trim());
+        if (item) {
+            item.checked = !item.checked;
+            saveShiftPlan();
+            renderShiftPlanList();
+            triggerHapticFeedback(item.checked ? [12, 45] : [16]);
+            if (item.checked) {
+                logUserAction(item.num, 'Plán na směnu', 'Nasazeno do výroby');
+            } else {
+                logUserAction(item.num, 'Plán na směnu', 'Odebráno z výroby');
+            }
+        }
+    }
+
+    function addMoldToShiftPlan(moldNum, suppressToast = false) {
+        const cleanNum = String(moldNum || '').trim();
+        if (!cleanNum) return false;
+
+        const existsInDB = rawDatabase.some(m => String(m[0]).trim() === cleanNum);
+        if (!existsInDB) {
+            if (!suppressToast) showToast(`Forma #${cleanNum} nebyla nalezena v databázi`, true);
+            return false;
+        }
+
+        if (currentShiftPlan.some(p => String(p.num).trim() === cleanNum)) {
+            if (!suppressToast) showToast(`Forma #${cleanNum} již je v seznamu`);
+            return false;
+        }
+
+        currentShiftPlan.push({ num: cleanNum, checked: false, addedAt: Date.now() });
+        saveShiftPlan();
+        renderShiftPlanList();
+        triggerHapticFeedback([18]);
+        logUserAction(cleanNum, 'Plán na směnu', 'Přidáno do plánu na směnu');
+        if (!suppressToast) showToast(`Forma #${cleanNum} přidána do plánu`);
+        return true;
+    }
+
+    function submitShiftPlanManualAdd() {
+        const input = document.getElementById('shiftPlanAddInput');
+        if (!input) return;
+        const val = input.value.trim();
+        if (!val) return;
+        const success = addMoldToShiftPlan(val);
+        if (success) {
+            input.value = '';
+        }
+    }
+
+    function removeShiftPlanItem(moldNum, e) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        triggerHapticFeedback([14]);
+        currentShiftPlan = currentShiftPlan.filter(p => String(p.num).trim() !== String(moldNum).trim());
+        saveShiftPlan();
+        renderShiftPlanList();
+    }
+
+    function clearShiftPlan() {
+        if (!currentShiftPlan || currentShiftPlan.length === 0) return;
+        triggerHapticFeedback([18]);
+        showCustomConfirm("Vyčistit seznam", "Opravdu chcete smazat celý seznam forem na směnu?", "Vyčistit", () => {
+            currentShiftPlan = [];
+            saveShiftPlan();
+            renderShiftPlanList();
+            showToast("Seznam byl vyčištěn");
+        });
+    }
+
+    function inspectMoldFromPlan(moldNum) {
+        closeShiftPlanModal();
+        switchTab('search');
+        const searchInput = document.getElementById('searchBar');
+        if (searchInput) {
+            searchInput.value = moldNum;
+            handleSearch();
+            searchInput.focus();
+        }
+    }
+
+    // ==========================================
+    // KABINET SEŘIZOVAČE & OSOBNÍ STATISTIKA
+    // ==========================================
+    function openUserCabinetModal() {
+        if (!currentUser) {
+            openLoginModal();
+            return;
+        }
+        triggerHapticFeedback([18]);
+        renderUserCabinetHeader();
+        showModalAnimated('userCabinetModal');
+        loadAndRenderUserCabinetStats();
+    }
+
+    function closeUserCabinetModal() {
+        hideModalAnimated('userCabinetModal');
+    }
+
+    function promptLogoutFromCabinet() {
+        triggerHapticFeedback([18]);
+        showCustomConfirm("Odhlášení", `Chcete se odhlásit z účtu ${currentUser}?`, "Odhlásit", () => {
+            closeUserCabinetModal();
+            currentUser = null;
+            isSuperUser = false;
+            localStorage.removeItem('adis_user_name');
+            localStorage.removeItem('adis_is_superuser');
+            eraseCookie('adis_user_name');
+            eraseCookie('adis_is_superuser');
+            loadShiftPlan();
+            updateAuthUI();
+            refreshUI();
+            showToast("Byli jste odhlášen");
+        });
+    }
+
+    function openShiftPlanFromCabinet() {
+        closeUserCabinetModal();
+        setTimeout(() => {
+            openShiftPlanModal();
+        }, 180);
+    }
+
+    function renderUserCabinetHeader() {
+        const avatarEl = document.getElementById('cabinetAvatar');
+        const nameEl = document.getElementById('cabinetUserName');
+        const badgeEl = document.getElementById('cabinetRoleBadge');
+        const roleTextEl = document.getElementById('cabinetRoleText');
+
+        if (nameEl) nameEl.textContent = currentUser || 'Seřizovač';
+        if (avatarEl) {
+            const clean = (currentUser || 'SE').trim();
+            avatarEl.textContent = clean.length >= 2 ? clean.slice(0, 2).toUpperCase() : clean.toUpperCase();
+        }
+        if (badgeEl && roleTextEl) {
+            if (isSuperUser) {
+                badgeEl.classList.add('is-super');
+                roleTextEl.textContent = 'Seřizovač • Superuser';
+            } else {
+                badgeEl.classList.remove('is-super');
+                roleTextEl.textContent = 'Seřizovač';
+            }
+        }
+    }
+
+    let cabinetDaysData = new Map();
+    let cabinetSelectedDayKey = null;
+
+    async function loadAndRenderUserCabinetStats() {
+        const todayStatEl = document.getElementById('cabinetStatToday');
+        const weekStatEl = document.getElementById('cabinetStatWeek');
+        const monthStatEl = document.getElementById('cabinetStatDays');
+        const chipsBar = document.getElementById('cabinetDaysChipsBar');
+        const drilldownContainer = document.getElementById('cabinetMoldsDrilldown');
+
+        if (!currentUser) return;
+
+        try {
+            const { data: logs, error } = await supabaseClient
+                .from('mold_logs')
+                .select('*')
+                .eq('user_name', currentUser)
+                .order('created_at', { ascending: false })
+                .limit(500);
+
+            if (error) throw error;
+
+            const userLogs = logs || [];
+            cabinetDaysData = new Map();
+            const now = new Date();
+            const toLocalDateStr = (d) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const todayStr = toLocalDateStr(now);
+            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            let todayCount = 0;
+            let weekCount = 0;
+            let monthCount = 0;
+
+            // Filter ONLY shift plan generated items
+            const planLogs = userLogs.filter(log => {
+                if (!log.created_at) return false;
+                const moldIdStr = String(log.mold_id || '').toUpperCase();
+                if (moldIdStr === 'HLEDÁNÍ' || moldIdStr === 'SYSTEM' || moldIdStr === 'NÁVODKA' || moldIdStr === 'SKENER') return false;
+                const oldPos = String(log.old_position || '').toLowerCase();
+                const newPos = String(log.new_position || '').toLowerCase();
+                
+                // Pure shift plan actions or production positioning
+                return oldPos.includes('plán na směnu') || newPos.includes('do plánu') || newPos.includes('nasazeno');
+            });
+
+            // Also include active shift plan items from local storage if not yet in logs
+            const seenKeys = new Set();
+
+            planLogs.forEach(log => {
+                const logDate = new Date(log.created_at);
+                const dayKey = toLocalDateStr(logDate);
+                const moldId = String(log.mold_id || '').trim();
+                const dedupeKey = `${dayKey}_${moldId}_${log.new_position}`;
+                seenKeys.add(dedupeKey);
+
+                if (!cabinetDaysData.has(dayKey)) {
+                    cabinetDaysData.set(dayKey, {
+                        date: logDate,
+                        moves: 0,
+                        molds: []
+                    });
+                }
+
+                const dayObj = cabinetDaysData.get(dayKey);
+                dayObj.moves++;
+
+                dayObj.molds.push({
+                    mold_id: moldId,
+                    old_position: log.old_position,
+                    new_position: log.new_position,
+                    created_at: log.created_at
+                });
+
+                if (dayKey === todayStr) {
+                    todayCount++;
+                }
+                if (logDate >= sevenDaysAgo) {
+                    weekCount++;
+                }
+                if (logDate >= startOfMonth) {
+                    monthCount++;
+                }
+            });
+
+            // Integrate current active shift plan items for today
+            if (Array.isArray(currentShiftPlan) && currentShiftPlan.length > 0) {
+                currentShiftPlan.forEach(item => {
+                    const cleanNum = String(item.num || '').trim();
+                    const dedupeKey = `${todayStr}_${cleanNum}_Nasazeno do výroby`;
+                    const dedupeKey2 = `${todayStr}_${cleanNum}_Přidáno do plánu na směnu`;
+                    
+                    if (!seenKeys.has(dedupeKey) && !seenKeys.has(dedupeKey2)) {
+                        if (!cabinetDaysData.has(todayStr)) {
+                            cabinetDaysData.set(todayStr, {
+                                date: now,
+                                moves: 0,
+                                molds: []
+                            });
+                        }
+                        const dayObj = cabinetDaysData.get(todayStr);
+                        dayObj.moves++;
+                        dayObj.molds.unshift({
+                            mold_id: cleanNum,
+                            old_position: 'Plán na směnu',
+                            new_position: item.checked ? 'Nasazeno do výroby' : 'V plánu na směnu',
+                            created_at: item.addedAt ? new Date(item.addedAt).toISOString() : now.toISOString()
+                        });
+                        todayCount++;
+                        weekCount++;
+                        monthCount++;
+                        seenKeys.add(dedupeKey);
+                    }
+                });
+            }
+
+            if (todayStatEl) todayStatEl.textContent = todayCount;
+            if (weekStatEl) weekStatEl.textContent = weekCount;
+            if (monthStatEl) monthStatEl.textContent = monthCount;
+
+            if (cabinetDaysData.size === 0) {
+                chipsBar.innerHTML = `<span style="font-size: 0.8rem; color: var(--text-muted); padding: 0.2rem 0;">Zatím žádné formy z plánu na směnu</span>`;
+                drilldownContainer.innerHTML = `
+                    <div class="empty-state-card" style="padding: 1.5rem 1rem; border-color: var(--border-color); box-shadow: none;">
+                        <div class="empty-state-icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                <path d="m9 14 2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="empty-state-title" style="font-size: 0.95rem;">Žádné formy z plánu</div>
+                        <div class="empty-state-desc" style="font-size: 0.8rem;">Formy, které zařadíte a nasadíte přes Plán na směnu, se zobrazí zde.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort days descending
+            const sortedDays = Array.from(cabinetDaysData.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+
+            // Set default selected day to today (if present) or latest active day
+            if (!cabinetSelectedDayKey || !cabinetDaysData.has(cabinetSelectedDayKey)) {
+                cabinetSelectedDayKey = sortedDays[0][0];
+            }
+
+            renderCabinetDayChips(sortedDays, todayStr);
+            renderCabinetMoldsDrilldown();
+
+        } catch (err) {
+            console.warn('Error loading cabinet stats:', err);
+            chipsBar.innerHTML = `<div class="no-data">Chyba směn</div>`;
+        }
+    }
+
+    function renderCabinetDayChips(sortedDays, todayStr) {
+        const chipsBar = document.getElementById('cabinetDaysChipsBar');
+        if (!chipsBar) return;
+
+        const now = new Date();
+        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const toLocalDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const yesterdayStr = toLocalDateStr(yesterday);
+        const czechDayNames = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
+
+        chipsBar.innerHTML = sortedDays.map(([dayKey, stat]) => {
+            let label = '';
+            const parts = dayKey.split('-');
+            const formattedDate = `${parts[2]}.${parts[1]}.`;
+
+            if (dayKey === todayStr) {
+                label = `Dnes (${formattedDate})`;
+            } else if (dayKey === yesterdayStr) {
+                label = `Včera (${formattedDate})`;
+            } else {
+                const dayOfWeek = czechDayNames[stat.date.getDay()];
+                label = `${dayOfWeek} ${formattedDate}`;
+            }
+
+            const isSelected = dayKey === cabinetSelectedDayKey;
+            return `
+                <button type="button" class="cabinet-day-chip ${isSelected ? 'active' : ''}" onclick="selectCabinetDay('${escapeHtml(dayKey)}')">
+                    <span>${escapeHtml(label)}</span>
+                    <span class="cabinet-day-chip-count">${stat.moves}</span>
+                </button>
+            `;
+        }).join('');
+    }
+
+    function selectCabinetDay(dayKey) {
+        if (cabinetSelectedDayKey === dayKey) return;
+        triggerHapticFeedback([12]);
+        cabinetSelectedDayKey = dayKey;
+        const chips = document.querySelectorAll('.cabinet-day-chip');
+        chips.forEach(chip => {
+            const isTarget = chip.getAttribute('onclick') && chip.getAttribute('onclick').includes(dayKey);
+            chip.classList.toggle('active', Boolean(isTarget));
+        });
+        renderCabinetMoldsDrilldown();
+    }
+
+    function renderCabinetMoldsDrilldown() {
+        const container = document.getElementById('cabinetMoldsDrilldown');
+        const summaryEl = document.getElementById('cabinetSelectedDaySummary');
+        if (!container) return;
+
+        if (!cabinetSelectedDayKey || !cabinetDaysData.has(cabinetSelectedDayKey)) {
+            container.innerHTML = `<div class="no-data">Vyberte směnu ze seznamu</div>`;
+            return;
+        }
+
+        const dayData = cabinetDaysData.get(cabinetSelectedDayKey);
+        const molds = dayData.molds || [];
+
+        if (summaryEl) {
+            summaryEl.textContent = `${dayData.moves} ${dayData.moves === 1 ? 'forma' : (dayData.moves < 5 ? 'formy' : 'forem')} v plánu`;
+        }
+
+        if (molds.length === 0) {
+            container.innerHTML = `<div class="no-data" style="padding: 1.5rem 0;">V této směně nebyly zaznamenány žádné formy z plánu</div>`;
+            return;
+        }
+
+        container.innerHTML = molds.map(item => {
+            const moldId = String(item.mold_id || '').trim();
+            const moldInfo = rawDatabase.find(m => String(m[0]).trim() === moldId);
+            const prodName = moldInfo ? (moldInfo[5] || 'Bez názvu') : '';
+            const cust = moldInfo ? (moldInfo[2] || '') : '';
+
+            // Format time HH:MM
+            const timeStr = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            
+            // Clean action text for shift plan
+            let actionText = item.new_position || 'Nasazeno do výroby';
+            const isNasazeno = actionText.toLowerCase().includes('nasazeno');
+
+            return `
+                <div class="cabinet-mold-row" onclick="inspectMoldFromCabinet('${escapeHtml(moldId)}')">
+                    <div class="cabinet-mold-row-left">
+                        <div class="cabinet-mold-id-line">
+                            <span>Forma #${escapeHtml(moldId)}</span>
+                            ${cust ? `<span class="tag-customer" style="font-size: 0.68rem; padding: 0.05rem 0.35rem;">${escapeHtml(cust)}</span>` : ''}
+                        </div>
+                        <div class="cabinet-mold-time-meta">
+                            ${prodName ? `<span>${escapeHtml(prodName)}</span> • ` : ''}
+                            <span style="color: ${isNasazeno ? '#16a34a' : 'var(--text-main)'}; font-weight: 500;">${escapeHtml(actionText)}</span>
+                        </div>
+                    </div>
+                    <div class="cabinet-mold-row-right">
+                        <span style="font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums;">${escapeHtml(timeStr)}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function inspectMoldFromCabinet(moldNum) {
+        if (!moldNum) return;
+        closeUserCabinetModal();
+        switchTab('search');
+        const searchInput = document.getElementById('searchBar');
+        if (searchInput) {
+            searchInput.value = moldNum;
+            handleSearch();
+            searchInput.focus();
+        }
     }
 
     function openAddModal(prefillId = '') {
