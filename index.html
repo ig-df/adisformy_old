@@ -2123,6 +2123,11 @@
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65), 0 0 28px rgba(34, 197, 94, 0.75) !important;
         }
 
+        .scanner-reticle.matched.matched-multi {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65), 0 0 28px rgba(56, 189, 248, 0.75) !important;
+        }
+
         .reticle-corner {
             position: absolute;
             width: 22px;
@@ -2139,6 +2144,10 @@
 
         .scanner-reticle.matched .reticle-corner {
             border-color: #22c55e !important;
+        }
+
+        .scanner-reticle.matched.matched-multi .reticle-corner {
+            border-color: #38bdf8 !important;
         }
 
         .scanner-laser-line {
@@ -2263,6 +2272,13 @@
             transform: translateY(105%);
             transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 30;
+            max-height: 85%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scanner-result-drawer.multi-mode {
+            border-top-color: #0284c7;
         }
 
         .scanner-result-drawer.active {
@@ -2324,6 +2340,83 @@
         .scanner-detail-value {
             font-weight: 600;
             color: #f8fafc;
+        }
+
+        .scanner-multi-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+
+        .scanner-multi-subtitle {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            margin-bottom: 0.75rem;
+        }
+
+        .scanner-multi-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.95rem;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .scanner-multi-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 0.65rem 0.85rem;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+        }
+
+        .scanner-multi-item:hover {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: rgba(56, 189, 248, 0.35);
+        }
+
+        .scanner-multi-item:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .scanner-multi-item-left {
+            display: flex;
+            align-items: baseline;
+            gap: 0.65rem;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .scanner-multi-mold-num {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #38bdf8;
+            font-family: var(--font-mono, monospace);
+            flex-shrink: 0;
+        }
+
+        .scanner-multi-cust {
+            font-size: 0.84rem;
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .scanner-multi-item-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
         }
 
         .scanner-actions-row {
@@ -2780,7 +2873,7 @@
         <div id="tab-search" class="tab-content active">
             <div class="search-box">
                 <input type="text" id="searchInput" class="search-input" tabindex="0" placeholder="Zadejte číslo formy, výrobu, pozici nebo zákazníka..." oninput="handleSearch()" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">
-                <button type="button" id="btnOpenScannerSearch" class="search-scan-icon-btn" onpointerdown="handleScanButtonPointerDown(event)" onclick="handleScanButtonTrigger(event)" title="Skenovat číslo formy fotoaparátem" aria-label="Skenovat číslo formy">
+                <button type="button" id="btnOpenScannerSearch" class="search-scan-icon-btn" onpointerdown="handleScanButtonPointerDown(event)" onclick="handleScanButtonTrigger(event)" title="Skenovat číslo formy nebo název výroby" aria-label="Skenovat číslo formy nebo název výroby">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
                         <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
@@ -3127,7 +3220,7 @@
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                     <circle cx="12" cy="13" r="4"></circle>
                 </svg>
-                <span>Skener čísla formy</span>
+                <span>Optický skener štítků & plánu</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
                 <button type="button" id="scannerTorchBtn" class="top-icon-btn" onclick="toggleScannerTorch()" title="Zapnout/Vypnout svítilnu" style="display: none; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fbbf24;">
@@ -3148,7 +3241,7 @@
             <video id="scannerVideo" playsinline autoplay muted></video>
             
             <div class="scanner-overlay-mask">
-                <div class="scanner-guide-text">Namiřte rámeček na číslo formy</div>
+                <div class="scanner-guide-text">Namiřte rámeček na číslo formy nebo název výroby</div>
                 <div class="scanner-reticle" id="scannerReticle">
                     <div class="reticle-corner tl"></div>
                     <div class="reticle-corner tr"></div>
@@ -3161,9 +3254,9 @@
             <div class="scanner-controls-bottom" id="scannerControlsBottom">
                 <div class="scanner-status-pill" id="scannerStatusPill">
                     <span class="scanner-status-dot"></span>
-                    <span id="scannerStatusText">Hledám číslo štítku...</span>
+                    <span id="scannerStatusText">Hledám číslo nebo název výroby...</span>
                 </div>
-                <button type="button" id="scannerSnapBtn" class="scanner-snap-btn" onpointerdown="handleSnapBtnPointerDown(event)" onclick="captureTagPhotoNow(event)" title="Okamžité vyfocení a rozpoznání čísla">
+                <button type="button" id="scannerSnapBtn" class="scanner-snap-btn" onpointerdown="handleSnapBtnPointerDown(event)" onclick="captureTagPhotoNow(event)" title="Okamžité vyfocení a rozpoznání">
                     <svg id="scannerSnapBtnIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <circle cx="12" cy="12" r="4"></circle>
@@ -3172,30 +3265,47 @@
                 </button>
             </div>
 
-            <!-- Slide-up card for detected mold -->
+            <!-- Slide-up card for detected mold or product list -->
             <div class="scanner-result-drawer" id="scannerResultDrawer">
-                <div class="scanner-result-badge">✓ Forma nalezena</div>
-                <div class="scanner-mold-num">
-                    <span>Forma:</span>
-                    <span id="scannerResMoldId" style="color: #38bdf8;">—</span>
+                <!-- Single Match View -->
+                <div id="scannerSingleResultView">
+                    <div class="scanner-result-badge" id="scannerSingleResultBadge">✓ Forma nalezena</div>
+                    <div class="scanner-mold-num">
+                        <span>Forma:</span>
+                        <span id="scannerResMoldId" style="color: #38bdf8;">—</span>
+                    </div>
+                    <div class="scanner-mold-details">
+                        <div class="scanner-detail-row">
+                            <span class="scanner-detail-label">Výroba:</span>
+                            <span class="scanner-detail-value" id="scannerResProduct">—</span>
+                        </div>
+                        <div class="scanner-detail-row">
+                            <span class="scanner-detail-label">Pozice:</span>
+                            <span class="scanner-detail-value" id="scannerResPosition" style="color: #4ade80;">—</span>
+                        </div>
+                        <div class="scanner-detail-row">
+                            <span class="scanner-detail-label">Zákazník:</span>
+                            <span class="scanner-detail-value" id="scannerResCustomer">—</span>
+                        </div>
+                    </div>
+                    <div class="scanner-actions-row">
+                        <button type="button" class="btn-primary" id="scannerOpenCardBtn" onclick="scannerConfirmOpen()" style="padding: 0.75rem 1rem; font-weight: 700; background: #22c55e; color: #052e16;">Otevřít kartu formy</button>
+                        <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #334155; color: #f8fafc;">Znovu skenovat</button>
+                    </div>
                 </div>
-                <div class="scanner-mold-details">
-                    <div class="scanner-detail-row">
-                        <span class="scanner-detail-label">Výroba:</span>
-                        <span class="scanner-detail-value" id="scannerResProduct">—</span>
+
+                <!-- Multi Match View (Multiple molds for product) -->
+                <div id="scannerMultiResultView" style="display: none;">
+                    <div class="scanner-result-badge" id="scannerMultiResultBadge" style="background: rgba(56, 189, 248, 0.18); color: #38bdf8;">✓ Nalezeno forem pro výrobu</div>
+                    <div class="scanner-multi-title" id="scannerMultiProductName">—</div>
+                    <div class="scanner-multi-subtitle">Vyberte formu pro otevření v kartě:</div>
+                    <div class="scanner-multi-list" id="scannerMultiList">
+                        <!-- Populated dynamically -->
                     </div>
-                    <div class="scanner-detail-row">
-                        <span class="scanner-detail-label">Pozice:</span>
-                        <span class="scanner-detail-value" id="scannerResPosition" style="color: #4ade80;">—</span>
+                    <div class="scanner-actions-row">
+                        <button type="button" class="btn-primary" id="scannerOpenAllBtn" onclick="scannerConfirmOpenAll()" style="padding: 0.75rem 1rem; font-weight: 700; background: #0284c7; color: #ffffff;">Zobrazit vše v hledání</button>
+                        <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #334155; color: #f8fafc;">Znovu skenovat</button>
                     </div>
-                    <div class="scanner-detail-row">
-                        <span class="scanner-detail-label">Zákazník:</span>
-                        <span class="scanner-detail-value" id="scannerResCustomer">—</span>
-                    </div>
-                </div>
-                <div class="scanner-actions-row">
-                    <button type="button" class="btn-primary" id="scannerOpenCardBtn" onclick="scannerConfirmOpen()" style="padding: 0.75rem 1rem; font-weight: 700; background: #22c55e; color: #052e16;">Otevřít kartu formy</button>
-                    <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #334155; color: #f8fafc;">Znovu skenovat</button>
                 </div>
             </div>
         </div>
@@ -3300,7 +3410,7 @@
             <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.5rem;"><input type="checkbox" id="autoMeziskladCheckbox" style="width: 18px; height: 18px;"><label for="autoMeziskladCheckbox">Přesunout na Mezisklad</label></div>
         </div>
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-            <button type="button" class="btn-danger" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.8rem; font-size: 0.82rem;" onclick="deleteCurrentEditMold()">
+            <button type="button" id="fullEditDeleteBtn" class="btn-danger" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.8rem; font-size: 0.82rem;" onclick="deleteCurrentEditMold()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 <span>Přesunout do koše</span>
             </button>
@@ -5731,6 +5841,10 @@
     }
 
     async function deleteMoldSoftDirect(moldId) {
+        if (!isSuperUser) {
+            alert("Tato akce je dostupná pouze pro superuživatele!");
+            return;
+        }
         if (!checkAuthOrPrompt() || isSubmittingAction) return;
 
         showCustomConfirm("Smazání formy", `Opravdu přesunout formu ${moldId} do koše?`, "Přesunout", async () => {
@@ -6094,7 +6208,7 @@
     }
 
     function toggleAccordionEditMode(moldId, rowKey) {
-        if (!checkSuperUserOrPrompt()) return;
+        if (!checkAuthOrPrompt()) return;
         editingAccordionMap[moldId] = !editingAccordionMap[moldId];
         if (!editingAccordionMap[moldId]) {
             if (temporaryFilesMap[moldId]) {
@@ -6239,7 +6353,7 @@
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
         }
-        if (!checkSuperUserOrPrompt() || isSubmittingAction) return;
+        if (!checkAuthOrPrompt() || isSubmittingAction) return;
         const uniqueKey = rowKey || moldId;
         const nameInput = document.getElementById(`acc-name-${uniqueKey}`);
         const newProductName = nameInput ? nameInput.value.trim() : '';
@@ -6585,6 +6699,8 @@
     let tesseractWorker = null;
     let isInitializingTesseract = false;
     let scannerMatchedMold = null;
+    let scannerMatchedMulti = null;
+    let scannerAutoOpenTimer = null;
     let scannerBarcodeDetector = null;
 
     // Pleasant audio feedback
@@ -6631,8 +6747,7 @@
                 logger: () => {}
             });
             await worker.setParameters({
-                tessedit_char_whitelist: '0123456789/-',
-                tessedit_pageseg_mode: '7' // Single line
+                tessedit_pageseg_mode: '6' // Assume a single uniform block of text
             });
             tesseractWorker = worker;
             return tesseractWorker;
@@ -6703,17 +6818,25 @@
         const si = document.getElementById('searchInput');
         if (si) si.blur();
 
+        clearTimeout(scannerAutoOpenTimer);
         isScannerLocked = false;
         scannerMatchedMold = null;
+        scannerMatchedMulti = null;
         isScannerProcessing = false;
         pendingManualSnap = false;
         updateScannerSnapBtnState(false);
 
         const reticle = document.getElementById('scannerReticle');
-        if (reticle) reticle.classList.remove('matched');
+        if (reticle) {
+            reticle.classList.remove('matched');
+            reticle.classList.remove('matched-multi');
+        }
 
         const drawer = document.getElementById('scannerResultDrawer');
-        if (drawer) drawer.classList.remove('active');
+        if (drawer) {
+            drawer.classList.remove('active');
+            drawer.classList.remove('multi-mode');
+        }
 
         const statusText = document.getElementById('scannerStatusText');
         if (statusText) statusText.textContent = "Připojování kamery...";
@@ -6900,13 +7023,13 @@
         if (cropW <= 0 || cropH <= 0) return null;
 
         const canvas = document.createElement('canvas');
-        canvas.width = Math.min(480, Math.round(cropW));
-        canvas.height = Math.min(240, Math.round(cropH));
+        canvas.width = Math.min(640, Math.round(cropW));
+        canvas.height = Math.min(320, Math.round(cropH));
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
         ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
 
-        // Preprocessing: convert to grayscale and boost contrast for high-accuracy digit OCR
+        // Preprocessing: boost contrast for high-accuracy text and digit OCR
         try {
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const d = imgData.data;
@@ -6916,20 +7039,164 @@
                 sumLum += (0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2]);
             }
             const avgLum = sumLum / count;
-            const threshold = avgLum * 0.92;
+            const contrastFactor = 1.4;
 
             for (let i = 0; i < d.length; i += 4) {
                 const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
-                // Sharpen black text on bright tag background
-                const val = lum < threshold ? 0 : 255;
-                d[i] = val;
-                d[i+1] = val;
-                d[i+2] = val;
+                const enhanced = Math.min(255, Math.max(0, ((lum - avgLum) * contrastFactor) + avgLum));
+                d[i] = enhanced;
+                d[i+1] = enhanced;
+                d[i+2] = enhanced;
             }
             ctx.putImageData(imgData, 0, 0);
         } catch (e) {}
 
         return canvas;
+    }
+
+    function normalizeTextForMatch(str) {
+        if (!str) return '';
+        return String(str)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function matchScannedData(rawOcrText, barcodeValues = []) {
+        const activeMolds = rawDatabase.filter(item => !item[4]);
+        if (activeMolds.length === 0) return null;
+
+        const ocrStr = String(rawOcrText || '');
+        const normOcr = normalizeTextForMatch(ocrStr);
+
+        // 1. Gather all candidate mold numbers from barcodes and OCR text
+        const candNumbers = [];
+        for (const b of barcodeValues) {
+            const cleanB = String(b || '').trim();
+            if (cleanB) {
+                candNumbers.push(cleanB);
+                const digits = cleanB.match(/[0-9]+([/-][0-9]+)?/g);
+                if (digits) candNumbers.push(...digits);
+            }
+        }
+        const ocrDigits = ocrStr.match(/[0-9]+([/-][0-9]+)?/g);
+        if (ocrDigits) {
+            candNumbers.push(...ocrDigits);
+        }
+
+        // Check if any candidate number directly corresponds to a mold in DB
+        let directMold = null;
+        for (const cand of candNumbers) {
+            const cleanCand = cand.trim();
+            if (!cleanCand) continue;
+
+            directMold = activeMolds.find(m => String(m[0]).trim().toLowerCase() === cleanCand.toLowerCase());
+            if (directMold) break;
+
+            const candInt = parseInt(cleanCand, 10);
+            if (!isNaN(candInt) && candInt > 0) {
+                directMold = activeMolds.find(m => parseInt(m[0], 10) === candInt);
+                if (directMold) break;
+            }
+        }
+
+        // 2. Check for product / item name matches
+        const rawLines = ocrStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const prefixRegex = /^(výrobek|vyrobek|výroba|vyroba|díl|dil|název|nazev|artikl|položka|polozka|model|popis|part|product|name)[:\s\-_]+/i;
+        const cleanedLinesNorm = rawLines.map(l => {
+            const stripped = l.replace(prefixRegex, '').trim();
+            return normalizeTextForMatch(stripped);
+        }).filter(l => l.length >= 2);
+
+        // Group molds by normalized product name
+        const productGroups = new Map();
+        for (const mold of activeMolds) {
+            const rawProd = String(mold[5] || '').trim();
+            if (!rawProd || rawProd.length < 2) continue;
+            const normProd = normalizeTextForMatch(rawProd);
+            if (!normProd || normProd.length < 2) continue;
+
+            if (!productGroups.has(normProd)) {
+                productGroups.set(normProd, { origName: rawProd, molds: [] });
+            }
+            if (!productGroups.get(normProd).molds.some(m => String(m[0]) === String(mold[0]))) {
+                productGroups.get(normProd).molds.push(mold);
+            }
+        }
+
+        // Match detected text against product groups
+        let matchedGroups = [];
+        for (const [normProd, group] of productGroups.entries()) {
+            let isMatch = false;
+            let matchScore = 0;
+
+            if (cleanedLinesNorm.some(cl => cl === normProd)) {
+                isMatch = true;
+                matchScore = 100 + normProd.length;
+            } else if (normOcr.includes(normProd)) {
+                isMatch = true;
+                matchScore = 80 + normProd.length;
+            } else if (cleanedLinesNorm.some(cl => cl.includes(normProd))) {
+                isMatch = true;
+                matchScore = 60 + normProd.length;
+            } else {
+                const prodWords = normProd.split(' ').filter(w => w.length >= 3);
+                if (prodWords.length >= 2 && prodWords.every(w => normOcr.includes(w))) {
+                    isMatch = true;
+                    matchScore = 40 + normProd.length;
+                }
+            }
+
+            if (isMatch) {
+                matchedGroups.push({ group, score: matchScore, normProd });
+            }
+        }
+
+        if (matchedGroups.length > 0) {
+            matchedGroups.sort((a, b) => b.score - a.score);
+            const best = matchedGroups[0].group;
+
+            // If a specific mold number was also found on the plan/sheet and matches this group, open that specific mold
+            if (directMold && best.molds.some(m => String(m[0]) === String(directMold[0]))) {
+                return {
+                    type: 'single',
+                    mold: directMold,
+                    matchType: 'exact_mold_in_product',
+                    productName: best.origName
+                };
+            }
+
+            if (best.molds.length === 1) {
+                return {
+                    type: 'single',
+                    mold: best.molds[0],
+                    matchType: 'unique_product',
+                    productName: best.origName
+                };
+            } else {
+                return {
+                    type: 'multi',
+                    molds: best.molds,
+                    matchType: 'multi_product',
+                    productName: best.origName
+                };
+            }
+        }
+
+        // 3. Fallback to direct mold ID match if no product name matched
+        if (directMold) {
+            return {
+                type: 'single',
+                mold: directMold,
+                matchType: 'direct_id',
+                productName: directMold[5] || ''
+            };
+        }
+
+        return null;
     }
 
     async function scanVideoFrame(isManualSnap = false) {
@@ -6948,7 +7215,7 @@
 
         const statusText = document.getElementById('scannerStatusText');
         if (isManualSnap && statusText) {
-            statusText.textContent = "Rozpoznávám číslo...";
+            statusText.textContent = "Rozpoznávám štítek / plán...";
         }
 
         try {
@@ -6957,7 +7224,8 @@
                 return;
             }
 
-            let candidateNumbers = [];
+            let barcodeValues = [];
+            let detectedText = '';
 
             // Tier 1: Check Barcode / DataMatrix / QR if supported
             if (scannerBarcodeDetector) {
@@ -6966,57 +7234,45 @@
                     if (barcodes && barcodes.length > 0) {
                         for (const b of barcodes) {
                             const val = (b.rawValue || '').trim();
-                            const digits = val.match(/[0-9]+([/-][0-9]+)?/g);
-                            if (digits) candidateNumbers.push(...digits);
+                            if (val) barcodeValues.push(val);
                         }
                     }
                 } catch (bErr) {}
             }
 
             // Tier 2: OCR with Tesseract
-            if (candidateNumbers.length === 0) {
-                const worker = await getTesseractWorker();
-                if (worker) {
+            const worker = await getTesseractWorker();
+            if (worker) {
+                try {
                     const ret = await worker.recognize(cropCanvas);
-                    const text = (ret && ret.data && ret.data.text) ? ret.data.text.trim() : '';
-                    if (text) {
-                        const matches = text.match(/[0-9]+([/-][0-9]+)?/g);
-                        if (matches) candidateNumbers.push(...matches);
+                    if (ret && ret.data && ret.data.text) {
+                        detectedText = ret.data.text.trim();
                     }
+                } catch (ocrErr) {
+                    console.warn("Chyba OCR:", ocrErr);
                 }
             }
 
-            if (candidateNumbers.length > 0) {
-                // Match candidate numbers against rawDatabase
-                let matched = null;
-                for (const cand of candidateNumbers) {
-                    const cleanCand = cand.trim();
-                    if (!cleanCand) continue;
+            // Intelligent matching against database
+            const matchResult = matchScannedData(detectedText, barcodeValues);
 
-                    // 1. Exact ID string match
-                    matched = rawDatabase.find(item => !item[4] && String(item[0]).trim() === cleanCand);
-                    if (matched) break;
-
-                    // 2. Numeric match (ignore leading zeros, e.g. 054 -> 54)
-                    const candInt = parseInt(cleanCand, 10);
-                    if (!isNaN(candInt)) {
-                        matched = rawDatabase.find(item => !item[4] && parseInt(item[0], 10) === candInt);
-                        if (matched) break;
-                    }
+            if (matchResult) {
+                if (matchResult.type === 'single') {
+                    handleSingleMoldMatchFound(matchResult);
+                } else if (matchResult.type === 'multi') {
+                    handleMultiMoldMatchFound(matchResult);
                 }
-
-                if (matched) {
-                    handleMoldMatchFound(matched);
-                    return;
-                } else if (isManualSnap) {
-                    const detectedNum = candidateNumbers[0];
-                    showToast(`Rozpoznáno číslo ${detectedNum}, ale forma není v databázi.`);
-                    if (statusText) statusText.textContent = `Rozpoznáno: #${detectedNum} (Nenalezeno v databázi)`;
-                    playScannerAudioBeep(false);
-                }
+                return;
             } else if (isManualSnap) {
-                showToast("Číslo štítku se nepodařilo rozpoznat. Zkuste zaostřit nebo použít blesk.");
-                if (statusText) statusText.textContent = "Číslo nerozpoznáno. Zkuste znovu.";
+                const sampleFound = (barcodeValues[0] || detectedText || '').trim().replace(/\s+/g, ' ');
+                if (sampleFound) {
+                    const previewText = sampleFound.length > 28 ? sampleFound.substring(0, 28) + '...' : sampleFound;
+                    showToast(`Rozpoznáno: "${previewText}", ale v databázi nebyla nalezena shoda.`);
+                    if (statusText) statusText.textContent = `Nenalezeno v databázi: "${previewText}"`;
+                } else {
+                    showToast("Text ani číslo se nepodařilo rozpoznat. Zkuste zaostřit nebo použít svítilnu.");
+                    if (statusText) statusText.textContent = "Nerozpoznáno. Zkuste zaostřit.";
+                }
                 playScannerAudioBeep(false);
             }
         } catch (e) {
@@ -7035,22 +7291,49 @@
         }
     }
 
-    function handleMoldMatchFound(matchedItem) {
+    function handleSingleMoldMatchFound(matchResult) {
         isScannerLocked = true;
-        scannerMatchedMold = matchedItem;
+        scannerMatchedMold = matchResult.mold;
+        scannerMatchedMulti = null;
 
         haptic.cameraSuccess();
         playScannerAudioBeep(true);
 
-        logUserAction(matchedItem[0], 'Skenování', 'Naskenována forma kamerou');
+        const matchedItem = matchResult.mold;
+        const [num, pos, cust, status, isDel, productName] = matchedItem;
+
+        const logDetail = matchResult.matchType === 'unique_product'
+            ? `Naskenován název výroby "${matchResult.productName}" (forma #${num})`
+            : (matchResult.matchType === 'exact_mold_in_product'
+                ? `Naskenována výroba "${matchResult.productName}" + forma #${num}`
+                : 'Naskenována forma kamerou');
+
+        logUserAction(num, 'Skenování', logDetail);
 
         const reticle = document.getElementById('scannerReticle');
-        if (reticle) reticle.classList.add('matched');
+        if (reticle) {
+            reticle.classList.add('matched');
+            reticle.classList.remove('matched-multi');
+        }
 
         const statusText = document.getElementById('scannerStatusText');
-        if (statusText) statusText.textContent = `Forma #${matchedItem[0]} nalezena!`;
+        if (statusText) {
+            statusText.textContent = matchResult.matchType === 'unique_product'
+                ? `Výroba "${matchResult.productName}" → Forma #${num}`
+                : `Forma #${num} nalezena!`;
+        }
 
-        const [num, pos, cust, status, isDel, productName] = matchedItem;
+        const singleView = document.getElementById('scannerSingleResultView');
+        const multiView = document.getElementById('scannerMultiResultView');
+        if (singleView) singleView.style.display = 'block';
+        if (multiView) multiView.style.display = 'none';
+
+        const badge = document.getElementById('scannerSingleResultBadge');
+        if (badge) {
+            badge.textContent = (matchResult.matchType === 'unique_product' || matchResult.matchType === 'exact_mold_in_product')
+                ? `✓ Výroba: ${matchResult.productName || 'Nalezena'}`
+                : '✓ Forma nalezena';
+        }
 
         document.getElementById('scannerResMoldId').textContent = num;
         document.getElementById('scannerResProduct').textContent = productName || 'Výroba nezadána';
@@ -7058,47 +7341,89 @@
         document.getElementById('scannerResCustomer').textContent = `${cust || 'Bez zákazníka'} • ${status || 'Aktivní'}`;
 
         const drawer = document.getElementById('scannerResultDrawer');
-        if (drawer) drawer.classList.add('active');
+        if (drawer) {
+            drawer.classList.remove('multi-mode');
+            drawer.classList.add('active');
+        }
 
         // Automatically open the mold card after 650ms for hands-free lookup
-        setTimeout(() => {
+        clearTimeout(scannerAutoOpenTimer);
+        scannerAutoOpenTimer = setTimeout(() => {
             if (isScannerLocked && scannerMatchedMold && String(scannerMatchedMold[0]) === String(num)) {
                 scannerConfirmOpen();
             }
         }, 650);
     }
 
-    function scannerResumeScanning() {
-        triggerHapticFeedback([12]);
-        isScannerLocked = false;
+    function handleMultiMoldMatchFound(matchResult) {
+        isScannerLocked = true;
+        scannerMatchedMulti = matchResult;
         scannerMatchedMold = null;
-        pendingManualSnap = false;
-        updateScannerSnapBtnState(false);
+
+        haptic.cameraSuccess();
+        playScannerAudioBeep(true);
+
+        const molds = matchResult.molds;
+        const prodName = matchResult.productName || 'Výroba';
+
+        logUserAction('SKENER', 'Skenování', `Naskenován plán výroby: "${prodName}" (${molds.length} forem)`);
 
         const reticle = document.getElementById('scannerReticle');
-        if (reticle) reticle.classList.remove('matched');
-
-        const drawer = document.getElementById('scannerResultDrawer');
-        if (drawer) drawer.classList.remove('active');
+        if (reticle) {
+            reticle.classList.add('matched');
+            reticle.classList.add('matched-multi');
+        }
 
         const statusText = document.getElementById('scannerStatusText');
-        if (statusText) statusText.textContent = "Namiřte rámeček na číslo formy";
-    }
+        if (statusText) statusText.textContent = `Výroba "${prodName}": nalezeno ${molds.length} forem`;
 
-    function captureTagPhotoNow(e) {
-        if (e) {
-            e.stopPropagation();
-            e.preventDefault();
+        const singleView = document.getElementById('scannerSingleResultView');
+        const multiView = document.getElementById('scannerMultiResultView');
+        if (singleView) singleView.style.display = 'none';
+        if (multiView) multiView.style.display = 'block';
+
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) {
+            drawer.classList.add('multi-mode');
+            drawer.classList.add('active');
         }
-        triggerHapticFeedback([18]);
-        scanVideoFrame(true);
+
+        const multiBadge = document.getElementById('scannerMultiResultBadge');
+        if (multiBadge) multiBadge.textContent = `✓ Nalezeno ${molds.length} forem pro výrobu`;
+
+        const titleEl = document.getElementById('scannerMultiProductName');
+        if (titleEl) titleEl.textContent = prodName;
+
+        const openAllBtn = document.getElementById('scannerOpenAllBtn');
+        if (openAllBtn) openAllBtn.textContent = `Zobrazit všech ${molds.length} v hledání`;
+
+        const listContainer = document.getElementById('scannerMultiList');
+        if (listContainer) {
+            listContainer.innerHTML = molds.map(m => {
+                const [num, pos, cust, status, isDel, pName, photos, navodka, prevPos] = m;
+                const badgeClass = getPositionBadgeClass(pos);
+                const displayPos = formatPositionDisplay(pos);
+                return `
+                    <div class="scanner-multi-item" onclick="scannerOpenSpecificMold('${escapeHtml(num)}')">
+                        <div class="scanner-multi-item-left">
+                            <span class="scanner-multi-mold-num">#${escapeHtml(num)}</span>
+                            <span class="scanner-multi-cust">${escapeHtml(cust || 'Bez zákazníka')}</span>
+                        </div>
+                        <div class="scanner-multi-item-right">
+                            <span class="${badgeClass}" style="margin: 0; font-size: 0.78rem;">${escapeHtml(displayPos)}</span>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
     }
 
-    function scannerConfirmOpen() {
-        if (!scannerMatchedMold) return;
-        const moldId = scannerMatchedMold[0];
-
+    function scannerOpenSpecificMold(moldId) {
         triggerHapticFeedback([20]);
+        clearTimeout(scannerAutoOpenTimer);
         closeNumberScanner();
 
         // Navigate to search tab and expand mold
@@ -7126,17 +7451,79 @@
         }, 120);
     }
 
+    function scannerConfirmOpenAll() {
+        if (!scannerMatchedMulti || !scannerMatchedMulti.productName) return;
+        const prodName = scannerMatchedMulti.productName;
+        triggerHapticFeedback([18]);
+        clearTimeout(scannerAutoOpenTimer);
+        closeNumberScanner();
+
+        switchTab('search');
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = prodName;
+            handleSearch();
+        }
+    }
+
+    function scannerResumeScanning() {
+        triggerHapticFeedback([12]);
+        clearTimeout(scannerAutoOpenTimer);
+        isScannerLocked = false;
+        scannerMatchedMold = null;
+        scannerMatchedMulti = null;
+        pendingManualSnap = false;
+        updateScannerSnapBtnState(false);
+
+        const reticle = document.getElementById('scannerReticle');
+        if (reticle) {
+            reticle.classList.remove('matched');
+            reticle.classList.remove('matched-multi');
+        }
+
+        const drawer = document.getElementById('scannerResultDrawer');
+        if (drawer) {
+            drawer.classList.remove('active');
+            drawer.classList.remove('multi-mode');
+        }
+
+        const statusText = document.getElementById('scannerStatusText');
+        if (statusText) statusText.textContent = "Namiřte rámeček na číslo formy nebo název výroby";
+    }
+
+    function captureTagPhotoNow(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        triggerHapticFeedback([18]);
+        scanVideoFrame(true);
+    }
+
+    function scannerConfirmOpen() {
+        if (!scannerMatchedMold) return;
+        scannerOpenSpecificMold(scannerMatchedMold[0]);
+    }
+
     function closeNumberScanner() {
+        clearTimeout(scannerAutoOpenTimer);
         hideModalAnimated('numberScannerModal');
         stopScannerStream();
         isScannerLocked = false;
         scannerMatchedMold = null;
+        scannerMatchedMulti = null;
         pendingManualSnap = false;
         updateScannerSnapBtnState(false);
         const drawer = document.getElementById('scannerResultDrawer');
-        if (drawer) drawer.classList.remove('active');
+        if (drawer) {
+            drawer.classList.remove('active');
+            drawer.classList.remove('multi-mode');
+        }
         const reticle = document.getElementById('scannerReticle');
-        if (reticle) reticle.classList.remove('matched');
+        if (reticle) {
+            reticle.classList.remove('matched');
+            reticle.classList.remove('matched-multi');
+        }
     }
 
     function openCommentModal(moldId) {
@@ -7472,6 +7859,12 @@
         document.getElementById('fullEditPositionInput').value = fallbackPos;
         document.getElementById('fullEditStatusSelect').value = currentStatus || '';
         document.getElementById('autoMeziskladCheckbox').checked = ['Ve frontě na údržbu', 'Ve frontě na opravu', 'Na údržbě / Na opravě', 'Na opravě pryč'].includes(currentStatus);
+        
+        const deleteBtn = document.getElementById('fullEditDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.style.display = isSuperUser ? 'flex' : 'none';
+        }
+        
         showModalAnimated('fullEditModal');
     }
 
@@ -7819,7 +8212,7 @@
             return `
                 <div class="accordion-top-bar">
                     <div class="accordion-header-title">Detail formy</div>
-                    ${isSuperUser ? `<button class="accordion-edit-trigger-btn" onclick="toggleAccordionEditMode('${escapeHtml(num)}', '${escapeHtml(uniqueKey)}')">${ACCORDION_EDIT_ICON_HTML} Upravit</button>` : ''}
+                    <button class="accordion-edit-trigger-btn" onclick="toggleAccordionEditMode('${escapeHtml(num)}', '${escapeHtml(uniqueKey)}')">${ACCORDION_EDIT_ICON_HTML} Upravit</button>
                 </div>
                 <div style="font-size: 0.9rem; text-transform: capitalize;"><strong>Název výroby:</strong> ${productName ? escapeHtml(productName) : '<span style="color:var(--text-muted)">Nezadán</span>'}</div>
                 
@@ -7835,7 +8228,7 @@
             `;
         } else {
             const existingThumbs = photosArr.map((url, idx) => `
-                <div class="accordion-thumb-wrapper"><img src="${escapeHtml(url)}" class="accordion-thumb"><button type="button" class="accordion-thumb-remove" onclick="removeExistingAccordionPhoto('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">&times;</button></div>
+                <div class="accordion-thumb-wrapper"><img src="${escapeHtml(url)}" class="accordion-thumb">${isSuperUser ? `<button type="button" class="accordion-thumb-remove" onclick="removeExistingAccordionPhoto('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">&times;</button>` : ''}</div>
             `).join('');
 
             const pending = temporaryFilesMap[num] || [];
@@ -7868,8 +8261,8 @@
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.35rem 0.5rem; background: var(--row-hover); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.78rem;">
                         <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${escapeHtml(title)}</span>
                         <div style="display: flex; gap: 0.3rem; align-items: center;">
-                            ${hasReplacement ? `<span style="font-size: 0.7rem; color: #16a34a; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(replaceFileName)}</span><button type="button" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="cancelNavodkaReplace('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Zrušit</button>` : `<input type="file" id="rep-nav-${escapeHtml(uniqueKey)}-${idx}" accept=".pdf,.doc,.docx,image/*" class="file-upload-hidden" onchange="handleNavodkaReplaceSelect('${escapeHtml(num)}', ${idx}, this, '${escapeHtml(uniqueKey)}')"><label for="rep-nav-${escapeHtml(uniqueKey)}-${idx}" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem; cursor: pointer;">Nahradit</label>`}
-                            <button type="button" class="btn-danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="removeSpecificNavodka('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Smazat</button>
+                            ${isSuperUser ? (hasReplacement ? `<span style="font-size: 0.7rem; color: #16a34a; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(replaceFileName)}</span><button type="button" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="cancelNavodkaReplace('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Zrušit</button>` : `<input type="file" id="rep-nav-${escapeHtml(uniqueKey)}-${idx}" accept=".pdf,.doc,.docx,image/*" class="file-upload-hidden" onchange="handleNavodkaReplaceSelect('${escapeHtml(num)}', ${idx}, this, '${escapeHtml(uniqueKey)}')"><label for="rep-nav-${escapeHtml(uniqueKey)}-${idx}" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem; cursor: pointer;">Nahradit</label>`) : ''}
+                            ${isSuperUser ? `<button type="button" class="btn-danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="removeSpecificNavodka('${escapeHtml(num)}', ${idx}, '${escapeHtml(uniqueKey)}')">Smazat</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -7890,7 +8283,7 @@
                 </div>
                 <div class="form-group">
                     <label>Název výroby / dílu:</label>
-                    <input type="text" id="acc-name-${escapeHtml(uniqueKey)}" value="${escapeHtml(productName)}" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">
+                    ${isSuperUser ? `<input type="text" id="acc-name-${escapeHtml(uniqueKey)}" value="${escapeHtml(productName)}" autocomplete="off" autocapitalization="sentences" autocapitalize="sentences">` : `<div style="padding: 0.35rem 0; font-size: 0.9rem; color: var(--text-main); font-weight: 500;">${productName ? escapeHtml(productName) : '<span style="color:var(--text-muted)">Nezadán</span>'}</div><input type="hidden" id="acc-name-${escapeHtml(uniqueKey)}" value="${escapeHtml(productName)}">`}
                 </div>
                 <div>
                     <div class="accordion-header-title" style="color: #3b82f6; margin-bottom: 0.3rem;">Návodky k výrobě:</div>
@@ -7906,10 +8299,10 @@
                     <div class="accordion-photo-box">${existingThumbs}${pendingThumbs}${uploadCard}</div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
-                    <button type="button" class="btn-danger" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.42rem 0.75rem; font-size: 0.78rem;" onclick="deleteMoldSoftDirect('${escapeHtml(num)}')">
+                    ${isSuperUser ? `<button type="button" class="btn-danger" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.42rem 0.75rem; font-size: 0.78rem;" onclick="deleteMoldSoftDirect('${escapeHtml(num)}')">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         <span>Přesunout do koše</span>
-                    </button>
+                    </button>` : '<div></div>'}
                     <button class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.82rem;" onclick="saveAccordionDetails('${escapeHtml(num)}', '${escapeHtml(uniqueKey)}')">Uložit změny</button>
                 </div>
             `;
