@@ -2195,9 +2195,9 @@
             letter-spacing: 0.02em;
         }
         .scanner-mode-btn.active {
-            background: #0284c7;
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+            background: #f8fafc;
+            color: #0f172a;
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.25);
         }
         .scanner-mode-btn:active {
             transform: scale(0.96);
@@ -2207,7 +2207,7 @@
             height: 240px;
             max-width: 90%;
             max-height: 52vh;
-            border-color: rgba(56, 189, 248, 0.5);
+            border-color: rgba(255, 255, 255, 0.4);
         }
         .scanner-batch-item {
             display: flex;
@@ -2665,6 +2665,7 @@
         }
         .shift-plan-add-input {
             flex: 1;
+            min-width: 0;
             padding: 0.55rem 0.8rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -2682,21 +2683,28 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
-            padding: 0.55rem 0.75rem;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
             border-radius: 8px;
-            font-size: 0.84rem;
-            font-weight: 600;
-            background: rgba(14, 165, 233, 0.08);
-            color: #0284c7;
-            border: 1px solid rgba(14, 165, 233, 0.25);
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
             cursor: pointer;
-            white-space: nowrap;
             transition: all 0.15s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .shift-plan-scan-btn:hover {
+            background-color: var(--row-hover);
         }
         .shift-plan-scan-btn:active {
-            transform: scale(0.96);
-            opacity: 0.85;
+            transform: scale(0.92);
+            background-color: var(--border-color);
+        }
+        .shift-plan-scan-btn svg {
+            width: 20px;
+            height: 20px;
         }
         .shift-plan-stats-bar {
             display: flex;
@@ -3659,12 +3667,15 @@
             <div class="shift-plan-container">
                 <div class="shift-plan-add-bar">
                     <input type="text" id="shiftPlanAddInput" class="shift-plan-add-input" placeholder="Číslo formy (např. 765)..." autocomplete="off" onkeydown="if(event.key==='Enter') submitShiftPlanManualAdd()">
-                    <button class="shift-plan-scan-btn" onclick="startScannerFromShiftPlan()" title="Naskenovat srozvrh / denní plán z kamery">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                            <circle cx="12" cy="13" r="4"></circle>
+                    <button type="button" class="shift-plan-scan-btn" onclick="startScannerFromShiftPlan()" title="Skenovat denní plán z kamery" aria-label="Skenovat denní plán z kamery">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                            <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                            <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                            <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                            <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+                            <line x1="7" y1="12" x2="17" y2="12"></line>
                         </svg>
-                        <span>Skenovat list</span>
                     </button>
                     <button class="btn-primary" style="padding: 0.55rem 0.9rem; font-size: 0.88rem;" onclick="submitShiftPlanManualAdd()">+ Přidat</button>
                 </div>
@@ -3801,9 +3812,13 @@
     <div class="modal-card">
         <div class="scanner-header">
             <div class="scanner-title">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #f8fafc;">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                    <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+                    <line x1="7" y1="12" x2="17" y2="12"></line>
                 </svg>
                 <span>Optický skener štítků & plánu</span>
             </div>
@@ -3863,7 +3878,7 @@
                     <div class="scanner-result-badge" id="scannerSingleResultBadge">✓ Forma nalezena</div>
                     <div class="scanner-mold-num">
                         <span>Forma:</span>
-                        <span id="scannerResMoldId" style="color: #38bdf8;">—</span>
+                        <span id="scannerResMoldId" style="color: #f8fafc;">—</span>
                     </div>
                     <div class="scanner-mold-details">
                         <div class="scanner-detail-row">
@@ -3901,15 +3916,15 @@
 
                 <!-- Batch / Shift Plan Sheet Match View -->
                 <div id="scannerBatchResultView" style="display: none;">
-                    <div class="scanner-result-badge" id="scannerBatchResultBadge" style="background: rgba(14, 165, 233, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">✓ Nalezeny formy ze seznamu</div>
+                    <div class="scanner-result-badge" id="scannerBatchResultBadge" style="background: rgba(255, 255, 255, 0.12); color: #f1f5f9; border: 1px solid rgba(255, 255, 255, 0.2);">✓ Nalezeny formy ze seznamu</div>
                     <div class="scanner-multi-title" id="scannerBatchTitle">Rozpoznané formy</div>
                     <div class="scanner-multi-subtitle" id="scannerBatchSubtitle">Vyberte formy k přidání do plánu na směnu:</div>
                     <div class="scanner-multi-list" id="scannerBatchList">
                         <!-- Populated dynamically with checkboxes -->
                     </div>
                     <div class="scanner-actions-row">
-                        <button type="button" class="btn-primary" id="scannerBatchAddBtn" onclick="scannerConfirmBatchAdd()" style="padding: 0.75rem 1rem; font-weight: 700; background: #0284c7; color: #ffffff; border: 1px solid #38bdf8;">+ Přidat vybrané do plánu</button>
-                        <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #0f172a; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1);">Znovu skenovat</button>
+                        <button type="button" class="btn-primary" id="scannerBatchAddBtn" onclick="scannerConfirmBatchAdd()" style="padding: 0.75rem 1rem; font-weight: 700; background: #16a34a; color: #ffffff; border: 1px solid #22c55e;">+ Přidat vybrané do plánu</button>
+                        <button type="button" class="btn-secondary" onclick="scannerResumeScanning()" style="padding: 0.75rem 1rem; background: #0f172a; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1);">Skenovat další</button>
                     </div>
                 </div>
             </div>
@@ -5899,7 +5914,6 @@
         document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
         showModalAnimated('loginModal');
-        setTimeout(() => document.getElementById('loginUsername').focus(), 100);
     }
 
     function closeLoginModal() { hideModalAnimated('loginModal'); }
@@ -8289,7 +8303,16 @@
             }
         }
 
-        // 2. Multi-line extraction: split OCR by lines
+        // 2. Direct regex extraction for all digit sequences (2..5 digits) from raw OCR
+        const allDigitMatches = ocrStr.match(/\b\d{2,5}\b/g) || [];
+        for (const numStr of allDigitMatches) {
+            const mold = activeMolds.find(m => String(m[0]).trim() === numStr.trim());
+            if (mold && !foundMoldsMap.has(String(mold[0]))) {
+                foundMoldsMap.set(String(mold[0]), mold);
+            }
+        }
+
+        // 3. Multi-line extraction: split OCR by lines
         const lines = ocrStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
         const isEuroSevenGlyph = (t) => /^[-+tTF\/?!~\\\]>]$/i.test(t);
         const isEuroOneGlyph = (t) => /^[|Il!1]$/.test(t);
@@ -8302,7 +8325,7 @@
 
         for (const line of lines) {
             const cleaned = line.replace(/[[\](){}<>#]/g, ' ').replace(/\s+/g, ' ').trim();
-            const tokens = cleaned.split(' ').filter(Boolean);
+            const tokens = cleaned.split(/[\s,;:\-\/\t]+/).filter(Boolean);
             if (tokens.length === 0) continue;
 
             const seq = [];
@@ -8327,6 +8350,10 @@
             }
 
             for (const tok of tokens) {
+                const onlyDigits = tok.replace(/\D/g, '');
+                if (onlyDigits.length >= 2 && onlyDigits.length <= 5) {
+                    candidateNumbers.add(onlyDigits);
+                }
                 if (/^\d{2,5}$/.test(tok)) {
                     candidateNumbers.add(tok);
                 } else {
@@ -8729,8 +8756,19 @@
     function handleBatchMoldMatchFound(molds) {
         if (!molds || molds.length === 0) return;
         isScannerLocked = true;
-        scannerBatchMolds = molds;
-        scannerSelectedBatchMoldIds = new Set(molds.map(m => String(m[0])));
+
+        // Merge new molds with existing batch molds so scanning along a sheet accumulates all molds
+        const existingMap = new Map(scannerBatchMolds.map(m => [String(m[0]), m]));
+        molds.forEach(m => {
+            const idStr = String(m[0]);
+            if (!existingMap.has(idStr)) {
+                existingMap.set(idStr, m);
+                scannerSelectedBatchMoldIds.add(idStr);
+            }
+        });
+
+        scannerBatchMolds = Array.from(existingMap.values());
+        scannerBatchMolds.forEach(m => scannerSelectedBatchMoldIds.add(String(m[0])));
 
         haptic.cameraSuccess();
         playScannerAudioBeep(true);
@@ -8786,7 +8824,7 @@
             return `
                 <div class="scanner-batch-item ${isSelected ? 'selected' : ''}" onclick="toggleBatchMoldSelection('${escapeHtml(idStr)}')">
                     <div style="display: flex; align-items: center; gap: 0.65rem;">
-                        <input type="checkbox" ${isSelected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer;" onclick="event.stopPropagation(); toggleBatchMoldSelection('${escapeHtml(idStr)}')">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer;" onclick="event.stopPropagation(); toggleBatchMoldSelection('${escapeHtml(idStr)}')">
                         <div>
                             <div style="display: flex; align-items: center; gap: 0.4rem;">
                                 <span style="font-weight: 800; font-size: 0.96rem; color: #f8fafc; font-family: monospace;">#${escapeHtml(idStr)}</span>
@@ -8826,11 +8864,11 @@
 
         let addedCount = 0;
         scannerSelectedBatchMoldIds.forEach(mId => {
-            const exists = shiftPlanList.some(item => String(item.id) === String(mId));
+            const exists = currentShiftPlan.some(item => String(item.id) === String(mId));
             if (!exists) {
                 const moldData = rawDatabase.find(m => String(m[0]) === String(mId));
                 if (moldData) {
-                    shiftPlanList.push({
+                    currentShiftPlan.push({
                         id: moldData[0],
                         pos: moldData[1],
                         customer: moldData[2],
@@ -8844,8 +8882,7 @@
         });
 
         if (addedCount > 0) {
-            saveShiftPlanToStorage();
-            updateShiftPlanBadge();
+            saveShiftPlan();
             logUserAction('PLÁN', 'Dávkový sken', `Přidáno ${addedCount} forem z listu do plánu na směnu`);
             showToast(`Přidáno ${addedCount} forem do plánu směny!`);
         } else {
@@ -9045,7 +9082,6 @@
         showModalAnimated('positionModal');
 
         setTimeout(() => {
-            inputEl.focus();
             inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 250);
     }
@@ -9496,10 +9532,6 @@
         loadShiftPlan();
         renderShiftPlanList();
         showModalAnimated('shiftPlanModal');
-        setTimeout(() => {
-            const input = document.getElementById('shiftPlanAddInput');
-            if (input) input.focus();
-        }, 220);
     }
 
     function closeShiftPlanModal() {
@@ -9668,7 +9700,6 @@
         if (searchInput) {
             searchInput.value = moldNum;
             handleSearch();
-            searchInput.focus();
         }
     }
 
@@ -10009,7 +10040,6 @@
         if (searchInput) {
             searchInput.value = moldNum;
             handleSearch();
-            searchInput.focus();
         }
     }
 
@@ -10022,10 +10052,7 @@
         renderCustomerSelects();
         showModalAnimated('addModal');
         if (prefillId) {
-            setTimeout(() => {
-                const prodInput = document.getElementById('addMoldProductName');
-                if (prodInput) prodInput.focus();
-            }, 250);
+            // prefillId handling without stealing focus
         }
     }
 
